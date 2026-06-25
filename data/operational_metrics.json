@@ -1,0 +1,236 @@
+{
+  "generated_at": "2026-06-25T10:50:26.266752",
+  "ed_metrics": {
+    "door_to_doc_min": 37,
+    "door_to_doc_target": 30,
+    "lwbs_count": 6,
+    "boarding_count": 6,
+    "avg_los_hours": 4.4,
+    "patients_waiting": 18,
+    "triage_level_counts": {
+      "ESI-1": 1,
+      "ESI-2": 7,
+      "ESI-3": 11,
+      "ESI-4": 10,
+      "ESI-5": 4
+    }
+  },
+  "staffing": {
+    "nurses_on_duty": 48,
+    "nurses_needed": 55,
+    "physicians_on_duty": 23,
+    "open_shifts": 6,
+    "nurse_patient_ratio": 4.3
+  },
+  "throughput": {
+    "admissions_today": 26,
+    "discharges_today": 23,
+    "transfers_in_today": 9,
+    "transfers_out_today": 7,
+    "avg_discharge_time": "12:15"
+  },
+  "quality": {
+    "hapi_rate": 1.84,
+    "fall_rate": 2.71,
+    "cauti_rate": 0.75,
+    "clabsi_rate": 0.92,
+    "readmission_30d_rate": 16.6,
+    "patient_satisfaction": 88
+  },
+  "hourly_admissions": [
+    {
+      "hour": "00:00",
+      "count": 3
+    },
+    {
+      "hour": "01:00",
+      "count": 7
+    },
+    {
+      "hour": "02:00",
+      "count": 8
+    },
+    {
+      "hour": "03:00",
+      "count": 2
+    },
+    {
+      "hour": "04:00",
+      "count": 1
+    },
+    {
+      "hour": "05:00",
+      "count": 4
+    },
+    {
+      "hour": "06:00",
+      "count": 3
+    },
+    {
+      "hour": "07:00",
+      "count": 3
+    },
+    {
+      "hour": "08:00",
+      "count": 5
+    },
+    {
+      "hour": "09:00",
+      "count": 2
+    },
+    {
+      "hour": "10:00",
+      "count": 7
+    },
+    {
+      "hour": "11:00",
+      "count": 5
+    },
+    {
+      "hour": "12:00",
+      "count": 3
+    },
+    {
+      "hour": "13:00",
+      "count": 6
+    },
+    {
+      "hour": "14:00",
+      "count": 7
+    },
+    {
+      "hour": "15:00",
+      "count": 4
+    },
+    {
+      "hour": "16:00",
+      "count": 7
+    },
+    {
+      "hour": "17:00",
+      "count": 8
+    },
+    {
+      "hour": "18:00",
+      "count": 5
+    },
+    {
+      "hour": "19:00",
+      "count": 2
+    },
+    {
+      "hour": "20:00",
+      "count": 4
+    },
+    {
+      "hour": "21:00",
+      "count": 1
+    },
+    {
+      "hour": "22:00",
+      "count": 4
+    },
+    {
+      "hour": "23:00",
+      "count": 1
+    }
+  ],
+  "capacity_trend": [
+    {
+      "time": "11:50",
+      "occupancy": 92
+    },
+    {
+      "time": "12:50",
+      "occupancy": 74
+    },
+    {
+      "time": "13:50",
+      "occupancy": 88
+    },
+    {
+      "time": "14:50",
+      "occupancy": 79
+    },
+    {
+      "time": "15:50",
+      "occupancy": 74
+    },
+    {
+      "time": "16:50",
+      "occupancy": 62
+    },
+    {
+      "time": "17:50",
+      "occupancy": 64
+    },
+    {
+      "time": "18:50",
+      "occupancy": 68
+    },
+    {
+      "time": "19:50",
+      "occupancy": 87
+    },
+    {
+      "time": "20:50",
+      "occupancy": 91
+    },
+    {
+      "time": "21:50",
+      "occupancy": 70
+    },
+    {
+      "time": "22:50",
+      "occupancy": 91
+    },
+    {
+      "time": "23:50",
+      "occupancy": 77
+    },
+    {
+      "time": "00:50",
+      "occupancy": 76
+    },
+    {
+      "time": "01:50",
+      "occupancy": 91
+    },
+    {
+      "time": "02:50",
+      "occupancy": 79
+    },
+    {
+      "time": "03:50",
+      "occupancy": 80
+    },
+    {
+      "time": "04:50",
+      "occupancy": 88
+    },
+    {
+      "time": "05:50",
+      "occupancy": 70
+    },
+    {
+      "time": "06:50",
+      "occupancy": 78
+    },
+    {
+      "time": "07:50",
+      "occupancy": 80
+    },
+    {
+      "time": "08:50",
+      "occupancy": 75
+    },
+    {
+      "time": "09:50",
+      "occupancy": 68
+    },
+    {
+      "time": "10:50",
+      "occupancy": 70
+    }
+  ]
+}
