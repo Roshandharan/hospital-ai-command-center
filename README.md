@@ -150,7 +150,7 @@ Real patient data is PHI and can't live in a demo. The synthetic generator produ
 
 A few things I'd build if this were going into production:
 
-- Connect to a real Cerner Millennium HL7 feed via the existing ingestion layer from the companion [Clinical AI Command Center](https://github.com/YOUR_USERNAME/clinical-ai-command-center) project
+- Connect to a real Cerner Millennium HL7 feed via an ingestion layer.
 - Train the XGBoost risk models on the Snowflake HealtheAnalytics schema instead of synthetic data
 - Persist the action log to PostgreSQL with proper user authentication so accountability is tied to real staff identities
 - Push high-priority agent recommendations to a mobile app or pager system so the recommendation reaches the clinician rather than waiting for them to look at a screen
