@@ -542,7 +542,7 @@ body {
 .vital-val { font-size: 20px; font-weight: 800; }
 .vital-label { font-size: 8px; color: var(--text-dim); }
 .vital-unit { font-size: 8px; color: var(--text-dim); }
-.vitals-chart-wrap { height: 100px; }
+.vitals-chart-wrap { height: 140px; }
 .info-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
 .info-field { display: flex; flex-direction: column; gap: 1px; }
 .info-label { font-size: 8px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; }
@@ -668,7 +668,6 @@ body {
 <!-- TOP BAR -->
 <div id="topbar">
   <div class="logo-section">
-    <div class="logo-icon">🏥</div>
     <div class="logo-text">
       <div class="name">HOSPITAL AI COMMAND CENTER</div>
       <div class="sub">Real-Time Clinical Operations · AI-Powered</div>
@@ -692,12 +691,12 @@ body {
 
 <!-- NAV -->
 <div id="nav">
-  <div class="nav-tab active" onclick="switchView('census')" id="nav-census">🏥 Census</div>
-  <div class="nav-tab" onclick="switchView('adt')" id="nav-adt">⚡ ADT Feed <span class="nav-badge blue" id="nav-adt-badge">0</span></div>
-  <div class="nav-tab" onclick="switchView('agents')" id="nav-agents">🤖 Agent Hub <span class="nav-badge" id="nav-agent-badge">0</span></div>
-  <div class="nav-tab" onclick="switchView('or')" id="nav-or">🔪 OR Board</div>
-  <div class="nav-tab" onclick="switchView('ops')" id="nav-ops">📊 Operations</div>
-  <div class="nav-tab" onclick="switchView('accountability')" id="nav-acct">✅ Accountability <span class="nav-badge green" id="nav-acct-badge">0</span></div>
+  <div class="nav-tab active" onclick="switchView('census')" id="nav-census">Census</div>
+  <div class="nav-tab" onclick="switchView('adt')" id="nav-adt">ADT Feed <span class="nav-badge blue" id="nav-adt-badge">0</span></div>
+  <div class="nav-tab" onclick="switchView('agents')" id="nav-agents">Agent Hub <span class="nav-badge" id="nav-agent-badge">0</span></div>
+  <div class="nav-tab" onclick="switchView('or')" id="nav-or">OR Board</div>
+  <div class="nav-tab" onclick="switchView('ops')" id="nav-ops">Operations</div>
+  <div class="nav-tab" onclick="switchView('accountability')" id="nav-acct">Accountability <span class="nav-badge green" id="nav-acct-badge">0</span></div>
 </div>
 
 <!-- MAIN -->
@@ -707,7 +706,6 @@ body {
   <div id="left-panel">
     <div class="panel" id="census-panel">
       <div class="panel-header">
-        <span style="font-size:14px">🏥</span>
         <div class="panel-title">Hospital Census</div>
         <div class="panel-badge" id="census-badge">— beds</div>
       </div>
@@ -717,7 +715,6 @@ body {
     </div>
     <div class="panel" id="or-panel">
       <div class="panel-header">
-        <span style="font-size:14px">🔪</span>
         <div class="panel-title">OR Board</div>
         <div class="panel-badge" id="or-badge">—</div>
       </div>
@@ -727,7 +724,6 @@ body {
     </div>
     <div class="panel" id="ops-panel">
       <div class="panel-header">
-        <span style="font-size:14px">📊</span>
         <div class="panel-title">Operational Metrics</div>
       </div>
       <div class="panel-body" id="ops-body" style="padding:6px">
@@ -739,7 +735,6 @@ body {
   <!-- CENTER: Live ADT Feed -->
   <div class="panel" id="feed-panel">
     <div class="panel-header">
-      <span style="font-size:14px">⚡</span>
       <div class="panel-title">Live ADT Feed</div>
       <div class="panel-badge" id="feed-count">0 events</div>
       <div style="margin-left:auto;font-size:9px;color:var(--text-dim)" id="last-ev-time">—</div>
@@ -753,10 +748,10 @@ body {
   <div id="right-panel">
     <div class="panel" id="agent-hub-panel">
       <div class="panel-header">
-        <span style="font-size:14px">🤖</span>
         <div class="panel-title">AI Analytics & Agents</div>
       </div>
       <div class="panel-body" id="analytics-body">
+        <div id="risk-watch-container"></div>
         <div class="acuity-tiles" id="acuity-tiles">
           <div class="acuity-tile CRITICAL"><div class="count" id="ac-critical">—</div><div class="label">Critical</div></div>
           <div class="acuity-tile HIGH"><div class="count" id="ac-high">—</div><div class="label">High</div></div>
@@ -769,6 +764,7 @@ body {
           <div class="mini-stat"><div class="v" id="ms-los" style="color:var(--medium)">—</div><div class="l">Avg LOS</div></div>
           <div class="mini-stat"><div class="v" id="ms-labs" style="color:var(--agent)">—</div><div class="l">Pending Labs</div></div>
         </div>
+        <div id="sepsis-watch-container"></div>
         <div class="chart-section-title">Discharge Prediction</div>
         <div class="chart-wrap"><canvas id="chart-discharge"></canvas></div>
         <div class="chart-section-title">Acuity Distribution</div>
@@ -779,7 +775,6 @@ body {
     </div>
     <div class="panel" id="alerts-panel">
       <div class="panel-header">
-        <span style="font-size:14px">🚨</span>
         <div class="panel-title">Active Alerts</div>
         <div class="panel-badge" id="alert-count" style="background:var(--critical-bg);color:var(--critical);border-color:#fecaca">0</div>
       </div>
@@ -813,36 +808,36 @@ body {
       <div class="modal-tabs">
         <div class="modal-tab active" onclick="pmTab('overview')">Overview</div>
         <div class="modal-tab" onclick="pmTab('vitals')">Vitals & Labs</div>
-        <div class="modal-tab" onclick="pmTab('agents')">🤖 AI Agents</div>
+        <div class="modal-tab" onclick="pmTab('agents')">AI Agents</div>
         <div class="modal-tab" onclick="pmTab('orders')">Orders</div>
         <div class="modal-tab" onclick="pmTab('notes')">Notes</div>
       </div>
-      <div id="pm-tab-overview" class="tab-content active">
+      <div id="pm-tab-overview" class="tab-content" style="display:block">
         <div class="modal-grid">
           <div class="msec"><div class="msec-title">Patient Information</div><div class="info-grid2" id="pm-info"></div></div>
           <div class="msec"><div class="msec-title">AI Risk Scores</div><div id="pm-scores"></div></div>
           <div class="msec full"><div class="msec-title">Vitals (Current)</div><div class="vitals-grid" id="pm-vitals"></div></div>
         </div>
       </div>
-      <div id="pm-tab-vitals" class="tab-content">
+      <div id="pm-tab-vitals" class="tab-content" style="display:none">
         <div class="msec full" style="margin-bottom:10px">
           <div class="msec-title">24-Hour Trend — HR, SBP, SpO₂</div>
           <div class="vitals-chart-wrap"><canvas id="pm-vitals-chart"></canvas></div>
         </div>
         <div class="msec full"><div class="msec-title">Laboratory Results</div><div id="pm-labs"></div></div>
       </div>
-      <div id="pm-tab-agents" class="tab-content">
+      <div id="pm-tab-agents" class="tab-content" style="display:none">
         <div id="pm-agents-content"></div>
       </div>
-      <div id="pm-tab-orders" class="tab-content">
+      <div id="pm-tab-orders" class="tab-content" style="display:none">
         <div class="modal-tabs" style="margin-bottom:8px">
           <div class="modal-tab active" onclick="ordTab('meds')">Medications</div>
           <div class="modal-tab" onclick="ordTab('imaging')">Imaging</div>
         </div>
-        <div id="pm-orders-meds" class="tab-content active"></div>
-        <div id="pm-orders-imaging" class="tab-content"></div>
+        <div id="pm-orders-meds" class="tab-content" style="display:block"></div>
+        <div id="pm-orders-imaging" class="tab-content" style="display:none"></div>
       </div>
-      <div id="pm-tab-notes" class="tab-content"><div id="pm-notes"></div></div>
+      <div id="pm-tab-notes" class="tab-content" style="display:none"><div id="pm-notes"></div></div>
     </div>
   </div>
 </div>
@@ -862,10 +857,10 @@ body {
     <div class="modal-body">
       <div class="modal-tabs">
         <div class="modal-tab active" onclick="adtTab('summary')">Summary</div>
-        <div class="modal-tab" onclick="adtTab('agents')">🤖 AI Agents</div>
+        <div class="modal-tab" onclick="adtTab('agents')">AI Agents</div>
         <div class="modal-tab" onclick="adtTab('vitals')">Vitals</div>
       </div>
-      <div id="adt-tab-summary" class="tab-content active">
+      <div id="adt-tab-summary" class="tab-content" style="display:block">
         <div class="modal-grid">
           <div class="msec">
             <div class="msec-title">Patient Details</div>
@@ -881,10 +876,10 @@ body {
           </div>
         </div>
       </div>
-      <div id="adt-tab-agents" class="tab-content">
+      <div id="adt-tab-agents" class="tab-content" style="display:none">
         <div id="adt-agents-content"></div>
       </div>
-      <div id="adt-tab-vitals" class="tab-content">
+      <div id="adt-tab-vitals" class="tab-content" style="display:none">
         <div class="modal-grid">
           <div class="msec full">
             <div class="msec-title">Admission Vitals</div>
@@ -953,7 +948,9 @@ let census = null, orSchedule = null, opsMetrics = null;
 let adtEvents = [], alerts = [], actionLog = [];
 let eventCount = 0, charts = {}, vitalsChart = null;
 let pendingActions = 0;
-let _actionContext = {}; // for action modal
+let _actionContext = {};
+let _currentPatientForModal = null;
+let currentView = 'census';
 
 // ══════════════════════════════════════════════════════════
 // CLOCK
@@ -986,6 +983,8 @@ async function init() {
     renderOps();
     renderFeed(adtEvents);
     renderAnalytics();
+    renderRiskWatch();
+    renderSepsisWatch();
     collectAlerts();
     initCharts();
     connectSSE();
@@ -1140,7 +1139,7 @@ function renderOrBoard() {
     let info = '', time = '';
     if (active) {
       info = `<div class="or-proc">${active.procedure}</div><div class="or-surgeon">${active.surgeon}</div><div class="or-meta">${active.patient_name} · ${active.patient_age}yo</div>`;
-      time = `<div class="or-live-badge">🔴 LIVE</div>`;
+      time = `<div class="or-live-badge">LIVE</div>`;
     } else if (next) {
       info = `<div class="or-proc">${next.procedure}</div><div class="or-surgeon">${next.surgeon}</div><div class="or-meta">Next: ${fmtTime(next.scheduled_start)}</div>`;
       time = `<div style="font-size:8px;color:var(--text-dim)">${next.duration_min}min</div>`;
@@ -1196,13 +1195,12 @@ function buildEventCard(ev, isNew) {
     <div class="risk-row"><div class="risk-lbl">Readmission 30d</div><div class="risk-track"><div class="risk-fill" style="width:${pct(s.readmission_30d)};background:${rColor(s.readmission_30d)}"></div></div><div class="risk-pct" style="color:${rColor(s.readmission_30d)}">${pct(s.readmission_30d)}</div></div>
     <div class="risk-row"><div class="risk-lbl">Deterioration</div><div class="risk-track"><div class="risk-fill" style="width:${pct(s.deterioration)};background:${rColor(s.deterioration)}"></div></div><div class="risk-pct" style="color:${rColor(s.deterioration)}">${pct(s.deterioration)}</div></div>
     <div class="risk-row"><div class="risk-lbl">Discharge Today</div><div class="risk-track"><div class="risk-fill" style="width:${pct(s.discharge_today)};background:${rColor(1-s.discharge_today)}"></div></div><div class="risk-pct" style="color:${rColor(1-s.discharge_today)}">${pct(s.discharge_today)}</div></div>
-    ${(s.sepsis_risk||0)>0.3?`<div class="risk-row"><div class="risk-lbl" style="color:var(--critical);font-weight:700">⚠ Sepsis Risk</div><div class="risk-track"><div class="risk-fill" style="width:${pct(s.sepsis_risk)};background:var(--critical)"></div></div><div class="risk-pct" style="color:var(--critical)">${pct(s.sepsis_risk)}</div></div>`:''}
+    ${(s.sepsis_risk||0)>0.3?`<div class="risk-row"><div class="risk-lbl" style="color:var(--critical);font-weight:700">SEPSIS RISK</div><div class="risk-track"><div class="risk-fill" style="width:${pct(s.sepsis_risk)};background:var(--critical)"></div></div><div class="risk-pct" style="color:var(--critical)">${pct(s.sepsis_risk)}</div></div>`:''}
     <div class="ev-ai-strip">
-      <span class="ai-icon">🤖</span>
+      <span class="ai-icon" style="font-weight:700;font-size:9px">AI</span>
       <span class="ai-text">${recs.length} agents · ${pending} actions pending</span>
       <span class="agent-count">${recs.length} agents</span>
     </div>
-    <div class="ev-click-hint">↗ Click to review agent recommendations and take action</div>
   `;
   el.onclick = () => openAdtModal(ev);
   return el;
@@ -1304,10 +1302,10 @@ function refreshAlerts() {
   const body = document.getElementById('alerts-body');
   const cnt = alerts.filter(a=>a.severity==='CRITICAL').length;
   document.getElementById('alert-count').textContent = cnt;
-  const icons = { SEPSIS:'🦠', DETERIORATION:'📉', CRITICAL_LAB:'🧪', DISCHARGE:'🏠', ADMIT:'🛏', HIGH:'⚠️', INFO:'ℹ️' };
+  const icons = { SEPSIS:'SEP', DETERIORATION:'DET', CRITICAL_LAB:'LAB', DISCHARGE:'DCH', ADMIT:'ADM', HIGH:'ALT', INFO:'INF' };
   body.innerHTML = alerts.map(a=>`
     <div class="alert-item ${a.severity}">
-      <div class="alert-icon">${icons[a.type]||icons[a.severity]||'⚠️'}</div>
+      <div class="alert-icon" style="font-size:8px;font-weight:800;width:28px;text-align:center;flex-shrink:0">${icons[a.type]||icons[a.severity]||'ALT'}</div>
       <div class="alert-body">
         <div class="alert-title ${a.severity}">${a.type}</div>
         <div class="alert-detail">${a.patient||''} · ${a.bed||''}</div>
@@ -1344,12 +1342,12 @@ function buildAgentCard(rec, eventId, canAction=true) {
   return `
     <div class="agent-full-card">
       <div class="afc-header">
-        <span class="afc-icon">${rec.icon||'🤖'}</span>
+        <div style="width:10px;height:10px;border-radius:50%;background:${rec.color||'var(--agent)'};flex-shrink:0"></div>
         <span class="afc-name" style="color:${rec.color||'var(--agent)'}">${rec.agent_name||rec.agent}</span>
         <span class="agent-priority ${rec.priority}">${rec.priority||'ROUTINE'}</span>
         <span class="afc-conf">${Math.round((rec.confidence||0.85)*100)}% conf <div class="conf-bar" style="display:inline-block;vertical-align:middle;margin-left:3px"><div class="conf-fill" style="width:${Math.round((rec.confidence||0.85)*100)}%"></div></div></span>
       </div>
-      ${rec.time_sensitive?`<div style="font-size:8px;font-weight:700;color:var(--critical);margin-bottom:5px">⏱ TIME-SENSITIVE · ${rec.window_hours}h window</div>`:''}
+      ${rec.time_sensitive?`<div style="font-size:8px;font-weight:700;color:var(--critical);margin-bottom:5px">TIME-SENSITIVE · ${rec.window_hours}h window</div>`:''}
       <div class="afc-body">${rec.recommendation}</div>
       ${pendBtns}
       ${actionedBanner}
@@ -1412,7 +1410,7 @@ function openAdtModal(ev) {
   // AI Summary
   document.getElementById('adt-ai-summary').innerHTML = `
     <div style="padding:8px;background:var(--agent-bg);border:1px solid #ddd6fe;border-radius:6px;color:var(--agent)">
-      🤖 ${ev.ai_summary||'AI analysis complete.'}
+      AI: ${ev.ai_summary||'AI analysis complete.'}
     </div>
   `;
 
@@ -1447,11 +1445,12 @@ function openAdtModal(ev) {
 }
 function closeAdtModal() { document.getElementById('adt-modal-overlay').classList.remove('open'); }
 function adtTab(t) {
-  ['summary','agents','vitals'].forEach(id=>{
-    document.getElementById(`adt-tab-${id}`)?.classList.toggle('active', id===t);
+  ['summary','agents','vitals'].forEach(id => {
+    const el = document.getElementById('adt-tab-' + id);
+    if (el) el.style.display = (id === t) ? 'block' : 'none';
   });
-  document.querySelectorAll('#adt-modal-overlay .modal-tab').forEach((el,i)=>{
-    el.classList.toggle('active', ['summary','agents','vitals'][i]===t);
+  document.querySelectorAll('#adt-modal-overlay .modal-tab').forEach((el, i) => {
+    el.classList.toggle('active', ['summary','agents','vitals'][i] === t);
   });
 }
 
@@ -1460,6 +1459,7 @@ function adtTab(t) {
 // ══════════════════════════════════════════════════════════
 let _vitalsChart = null;
 function openPatientModal(p) {
+  _currentPatientForModal = p;
   document.getElementById('patient-modal-overlay').classList.add('open');
   set('pm-name', p.name||p.mrn);
   set('pm-meta', `${p.age}yo ${p.sex==='M'?'♂':'♀'} · ${p.diagnosis} · ${p.attending}`);
@@ -1501,33 +1501,6 @@ function openPatientModal(p) {
     {l:'GCS',val:p.acuity==='CRITICAL'?Math.floor(Math.random()*5+10):15,unit:'/15',color:'var(--accent)'},
   ].map(v=>`<div class="vital-card"><div class="vital-val" style="color:${v.color}">${v.val}</div><div class="vital-label">${v.l}</div><div class="vital-unit">${v.unit}</div></div>`).join('');
 
-  // Vitals chart
-  if (_vitalsChart) { _vitalsChart.destroy(); _vitalsChart=null; }
-  const ctx = document.getElementById('pm-vitals-chart')?.getContext('2d');
-  if (ctx && p.vitals_history) {
-    const h = p.vitals_history;
-    _vitalsChart = new Chart(ctx, {
-      type:'line',
-      data:{
-        labels: h.map((_,i)=>i%4===0?fmtTime(h[i].timestamp):''),
-        datasets:[
-          {label:'HR',data:h.map(v=>v.hr),borderColor:'#dc2626',borderWidth:1.5,pointRadius:0,tension:0.4},
-          {label:'SBP',data:h.map(v=>v.sbp),borderColor:'#2563eb',borderWidth:1.5,pointRadius:0,tension:0.4},
-          {label:'SpO₂',data:h.map(v=>v.spo2),borderColor:'#16a34a',borderWidth:1.5,pointRadius:0,tension:0.4,yAxisID:'y2'},
-        ]
-      },
-      options:{
-        plugins:{legend:{position:'top',labels:{font:{size:8},padding:6}}},
-        scales:{
-          y:{grid:{color:'#f1f5f9'},ticks:{font:{size:8}}},
-          y2:{position:'right',min:85,max:100,grid:{display:false},ticks:{font:{size:8},callback:v=>v+'%'}},
-          x:{grid:{display:false},ticks:{font:{size:8}}},
-        },
-        responsive:true, maintainAspectRatio:false,
-      }
-    });
-  }
-
   // Labs
   const labs = p.labs||[];
   document.getElementById('pm-labs').innerHTML = labs.map(l=>`
@@ -1535,7 +1508,7 @@ function openPatientModal(p) {
       <div class="lab-name2">${l.test}</div>
       <div class="lab-val2 ${l.critical?'crit':l.abnormal?'abn':''}">${l.value||'—'}</div>
       <span class="status-badge ${l.status}">${l.status}</span>
-      ${l.critical?'<span style="color:var(--critical);font-size:8px;font-weight:700">⚠ CRITICAL</span>':''}
+      ${l.critical?'<span style="color:var(--critical);font-size:8px;font-weight:700">CRITICAL</span>':''}
     </div>
   `).join('') || '<div style="color:var(--text-dim);font-size:9px">No labs</div>';
 
@@ -1545,7 +1518,7 @@ function openPatientModal(p) {
   const imgs = orders.filter(o=>o.type==='imaging');
   document.getElementById('pm-orders-meds').innerHTML = meds.map(o=>`
     <div class="order-row2">
-      <div class="order-icon2">💊</div>
+      <div class="order-icon2" style="font-size:9px;font-weight:700">MED</div>
       <div class="order-info2">
         <div class="order-name2">${o.name} ${o.dose||''}</div>
         <div class="order-detail2">${o.frequency||''} · ${o.route||''} · ${o.ordered_by||'—'}</div>
@@ -1555,7 +1528,7 @@ function openPatientModal(p) {
   `).join('') || '<div style="color:var(--text-dim);font-size:9px">No medications</div>';
   document.getElementById('pm-orders-imaging').innerHTML = imgs.map(o=>`
     <div class="order-row2">
-      <div class="order-icon2">🔬</div>
+      <div class="order-icon2" style="font-size:9px;font-weight:700">IMG</div>
       <div class="order-info2">
         <div class="order-name2">${o.name}</div>
         <div class="order-detail2">${o.priority||''} · ${o.ordered_by||'—'}</div>
@@ -1577,16 +1550,17 @@ function openPatientModal(p) {
   const patientRecs = _buildPatientAgentRecs(p);
   document.getElementById('pm-agents-content').innerHTML = patientRecs.map(r=>buildAgentCard(r, p.mrn, true)).join('');
 
+  ordTab('meds');
   pmTab('overview');
 }
 
 function _buildPatientAgentRecs(p) {
   const s = p.scores||{};
   return [
-    {agent:'RiskAgent',agent_name:'Risk Stratification Agent',icon:'📊',color:'#2563eb',confidence:0.91,priority:s.readmission_30d>0.6?'URGENT':'ROUTINE',recommendation:`Patient has ${Math.round((s.readmission_30d||0)*100)}% 30-day readmission risk. LOS ${p.los_days} days — predicted ${s.los_predicted_days||'—'} days total. ${s.readmission_30d>0.5?'Recommend care management engagement before discharge.':'Monitor for changes.'}`,actions:[{label:'Enroll in Follow-Up',type:'primary'},{label:'Flag for CM',type:'secondary'}],assign_to:'Care Management'},
-    {agent:'DischargeAgent',agent_name:'Discharge Planning Agent',icon:'🏠',color:'#16a34a',confidence:0.87,priority:s.discharge_today>0.5?'URGENT':'ROUTINE',recommendation:`Discharge probability today: ${Math.round((s.discharge_today||0)*100)}%. Tomorrow: ${Math.round((s.discharge_tomorrow||0)*100)}%. ${s.discharge_today>0.4?'Recommend initiating discharge checklist and medication reconciliation now.':'Continue current monitoring.'}`,actions:[{label:'Set Discharge Target',type:'primary'},{label:'Order Discharge Meds',type:'secondary'}],assign_to:'NP Rivera'},
-    {agent:'SepsisAgent',agent_name:'Sepsis Surveillance Agent',icon:'🦠',color:'#dc2626',confidence:0.93,priority:s.sepsis_risk>0.4?'STAT':'ROUTINE',recommendation:`Sepsis surveillance active. Current risk: ${Math.round((s.sepsis_risk||0)*100)}%. ${s.sepsis_risk>0.4?'Elevated — SEP-1 bundle compliance check required. Verify lactate and cultures ordered.':'No current sepsis concerns.'}`,actions:s.sepsis_risk>0.4?[{label:'Check SEP-1 Bundle',type:'danger'},{label:'Order Lactate',type:'danger'}]:[{label:'Continue Monitoring',type:'secondary'}],assign_to:s.sepsis_risk>0.4?'Rapid Response Team':'RN Johnson',time_sensitive:s.sepsis_risk>0.4,window_hours:6},
-    {agent:'MedSafetyAgent',agent_name:'Medication Safety Agent',icon:'💊',color:'#0891b2',confidence:0.96,priority:'ROUTINE',recommendation:`Active medications reviewed. ${(p.orders||[]).filter(o=>o.type==='medication').length} medications on profile. No critical interactions detected in current review.`,actions:[{label:'Acknowledge Review',type:'secondary'}],assign_to:'Dr. Sarah Chen'},
+    {agent:'RiskAgent',agent_name:'Risk Stratification Agent',icon:'RISK',color:'#2563eb',confidence:0.91,priority:s.readmission_30d>0.6?'URGENT':'ROUTINE',recommendation:`Patient has ${Math.round((s.readmission_30d||0)*100)}% 30-day readmission risk. LOS ${p.los_days} days — predicted ${s.los_predicted_days||'—'} days total. ${s.readmission_30d>0.5?'Recommend care management engagement before discharge.':'Monitor for changes.'}`,actions:[{label:'Enroll in Follow-Up',type:'primary'},{label:'Flag for CM',type:'secondary'}],assign_to:'Care Management'},
+    {agent:'DischargeAgent',agent_name:'Discharge Planning Agent',icon:'DISCH',color:'#16a34a',confidence:0.87,priority:s.discharge_today>0.5?'URGENT':'ROUTINE',recommendation:`Discharge probability today: ${Math.round((s.discharge_today||0)*100)}%. Tomorrow: ${Math.round((s.discharge_tomorrow||0)*100)}%. ${s.discharge_today>0.4?'Recommend initiating discharge checklist and medication reconciliation now.':'Continue current monitoring.'}`,actions:[{label:'Set Discharge Target',type:'primary'},{label:'Order Discharge Meds',type:'secondary'}],assign_to:'NP Rivera'},
+    {agent:'SepsisAgent',agent_name:'Sepsis Surveillance Agent',icon:'SEPSIS',color:'#dc2626',confidence:0.93,priority:s.sepsis_risk>0.4?'STAT':'ROUTINE',recommendation:`Sepsis surveillance active. Current risk: ${Math.round((s.sepsis_risk||0)*100)}%. ${s.sepsis_risk>0.4?'Elevated — SEP-1 bundle compliance check required. Verify lactate and cultures ordered.':'No current sepsis concerns.'}`,actions:s.sepsis_risk>0.4?[{label:'Check SEP-1 Bundle',type:'danger'},{label:'Order Lactate',type:'danger'}]:[{label:'Continue Monitoring',type:'secondary'}],assign_to:s.sepsis_risk>0.4?'Rapid Response Team':'RN Johnson',time_sensitive:s.sepsis_risk>0.4,window_hours:6},
+    {agent:'MedSafetyAgent',agent_name:'Medication Safety Agent',icon:'MED',color:'#0891b2',confidence:0.96,priority:'ROUTINE',recommendation:`Active medications reviewed. ${(p.orders||[]).filter(o=>o.type==='medication').length} medications on profile. No critical interactions detected in current review.`,actions:[{label:'Acknowledge Review',type:'secondary'}],assign_to:'Dr. Sarah Chen'},
   ];
 }
 
@@ -1594,17 +1568,58 @@ function closePatientModal() {
   document.getElementById('patient-modal-overlay').classList.remove('open');
   if (_vitalsChart) { _vitalsChart.destroy(); _vitalsChart=null; }
 }
-function pmTab(t) {
-  ['overview','vitals','agents','orders','notes'].forEach(id=>{
-    document.getElementById(`pm-tab-${id}`)?.classList.toggle('active', id===t);
-  });
-  document.querySelectorAll('#patient-modal-overlay .modal-tab').forEach((el,i)=>{
-    el.classList.toggle('active',['overview','vitals','agents','orders','notes'][i]===t);
+
+function renderVitalsChart(p) {
+  if (_vitalsChart) { _vitalsChart.destroy(); _vitalsChart = null; }
+  const canvas = document.getElementById('pm-vitals-chart');
+  if (!canvas || !p || !p.vitals_history) return;
+  const ctx = canvas.getContext('2d');
+  const h = p.vitals_history;
+  _vitalsChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: h.map((_, i) => i % 4 === 0 ? fmtTime(h[i].timestamp) : ''),
+      datasets: [
+        { label: 'HR (bpm)',   data: h.map(v => v.hr),   borderColor: '#dc2626', backgroundColor: 'rgba(220,38,38,0.05)',  borderWidth: 2, pointRadius: 0, tension: 0.4, fill: false },
+        { label: 'SBP (mmHg)', data: h.map(v => v.sbp),  borderColor: '#2563eb', backgroundColor: 'rgba(37,99,235,0.05)',  borderWidth: 2, pointRadius: 0, tension: 0.4, fill: false },
+        { label: 'SpO2 (%)',   data: h.map(v => v.spo2), borderColor: '#16a34a', backgroundColor: 'rgba(22,163,74,0.05)',  borderWidth: 2, pointRadius: 0, tension: 0.4, fill: false, yAxisID: 'y2' },
+        { label: 'Temp (°C)',  data: h.map(v => v.temp), borderColor: '#d97706', backgroundColor: 'rgba(217,119,6,0.05)',  borderWidth: 1.5, pointRadius: 0, tension: 0.4, fill: false, yAxisID: 'y3', borderDash: [4,2] },
+      ]
+    },
+    options: {
+      plugins: { legend: { position: 'top', labels: { font: { size: 9 }, padding: 10, boxWidth: 20 } } },
+      scales: {
+        y:  { title: { display: true, text: 'HR / SBP', font: { size: 8 } }, grid: { color: '#f1f5f9' }, ticks: { font: { size: 8 } } },
+        y2: { position: 'right', title: { display: true, text: 'SpO2%', font: { size: 8 } }, min: 84, max: 100, grid: { display: false }, ticks: { font: { size: 8 }, callback: v => v + '%' } },
+        y3: { display: false, min: 35, max: 41 },
+        x:  { grid: { display: false }, ticks: { font: { size: 8 } } },
+      },
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+    }
   });
 }
+
+function pmTab(t) {
+  const tabs = ['overview','vitals','agents','orders','notes'];
+  tabs.forEach(id => {
+    const el = document.getElementById('pm-tab-' + id);
+    if (el) el.style.display = (id === t) ? 'block' : 'none';
+  });
+  document.querySelectorAll('#patient-modal-overlay .modal-tab').forEach((el, i) => {
+    el.classList.toggle('active', tabs[i] === t);
+  });
+  if (t === 'vitals' && _currentPatientForModal) {
+    setTimeout(() => renderVitalsChart(_currentPatientForModal), 50);
+  }
+}
 function ordTab(t) {
-  ['meds','imaging'].forEach(id=>{
-    document.getElementById(`pm-orders-${id}`)?.classList.toggle('active',id===t);
+  ['meds', 'imaging'].forEach(id => {
+    const el = document.getElementById('pm-orders-' + id);
+    if (el) el.style.display = (id === t) ? 'block' : 'none';
+  });
+  document.querySelectorAll('#pm-tab-orders .modal-tab').forEach((el, i) => {
+    el.classList.toggle('active', ['meds','imaging'][i] === t);
   });
 }
 
@@ -1620,7 +1635,7 @@ async function openActionModal(ctx) {
   const rec = ctx.rec;
   set('action-modal-agent', rec.agent_name||rec.agent);
   set('action-modal-rec', rec.recommendation);
-  set('action-modal-title', `${rec.icon||'🤖'} Take Action`);
+  set('action-modal-title', `Take Action`);
 
   ['accept','override','escalate'].forEach(d=>{
     const el = document.getElementById(`decision-${d}`);
@@ -1710,7 +1725,7 @@ function openOrModal(room) {
   set('or-modal-meta', `${room.cases.length} cases · Status: ${room.status.toUpperCase()}`);
   document.getElementById('or-modal-timeline').innerHTML = `<div class="or-timeline">${room.cases.map(c=>`
     <div class="or-tl-block ${c.status}" style="flex:${c.duration_min}">
-      <span>${c.status==='in-progress'?'🔴':c.status==='completed'?'✅':'⏳'}</span>
+      <span style="font-size:7px;font-weight:700">${c.status==='in-progress'?'LIVE':c.status==='completed'?'DONE':'SCHED'}</span>
       <span style="font-weight:700">${c.procedure.substring(0,14)}</span>
       <span style="color:var(--text-dim)">${c.duration_min}min</span>
     </div>
@@ -1736,11 +1751,341 @@ function closeOrModal() { document.getElementById('or-modal-overlay').classList.
 // ══════════════════════════════════════════════════════════
 // NAV / VIEW SWITCHING
 // ══════════════════════════════════════════════════════════
+function restoreCensusPanel() {
+  const body = document.getElementById('analytics-body');
+  body.innerHTML = `
+    <div id="risk-watch-container"></div>
+    <div class="acuity-tiles" id="acuity-tiles">
+      <div class="acuity-tile CRITICAL"><div class="count" id="ac-critical">—</div><div class="label">Critical</div></div>
+      <div class="acuity-tile HIGH"><div class="count" id="ac-high">—</div><div class="label">High</div></div>
+      <div class="acuity-tile MEDIUM"><div class="count" id="ac-medium">—</div><div class="label">Medium</div></div>
+      <div class="acuity-tile LOW"><div class="count" id="ac-low">—</div><div class="label">Low</div></div>
+    </div>
+    <div class="mini-stats">
+      <div class="mini-stat"><div class="v" id="ms-dt" style="color:var(--low)">—</div><div class="l">Disch Today</div></div>
+      <div class="mini-stat"><div class="v" id="ms-dm">—</div><div class="l">Disch Tomorrow</div></div>
+      <div class="mini-stat"><div class="v" id="ms-los" style="color:var(--medium)">—</div><div class="l">Avg LOS</div></div>
+      <div class="mini-stat"><div class="v" id="ms-labs" style="color:var(--agent)">—</div><div class="l">Pending Labs</div></div>
+    </div>
+    <div id="sepsis-watch-container"></div>
+    <div class="chart-section-title">Discharge Prediction</div>
+    <div class="chart-wrap"><canvas id="chart-discharge"></canvas></div>
+    <div class="chart-section-title">Acuity Distribution</div>
+    <div class="chart-wrap"><canvas id="chart-acuity"></canvas></div>
+    <div class="chart-section-title">24h Capacity Trend</div>
+    <div class="chart-wrap"><canvas id="chart-capacity"></canvas></div>
+  `;
+  ['discharge','acuity','capacity'].forEach(k => { if (charts[k]) { charts[k].destroy(); charts[k]=null; } });
+  if (census) applyStats(census.summary);
+  renderAnalytics();
+  renderRiskWatch();
+  renderSepsisWatch();
+  initCharts();
+}
+
 function switchView(v) {
-  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
-  document.getElementById(`nav-${v==='accountability'?'acct':v}`)?.classList.add('active');
-  // All views use the same 3-column layout; just highlight the tab for now
-  // Future: full view switching
+  currentView = v;
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  const tabMap = {census:'nav-census', adt:'nav-adt', agents:'nav-agents', or:'nav-or', ops:'nav-ops', accountability:'nav-acct'};
+  document.getElementById(tabMap[v])?.classList.add('active');
+
+  const leftPanel  = document.getElementById('left-panel');
+  const feedPanel  = document.getElementById('feed-panel');
+  const rightPanel = document.getElementById('right-panel');
+
+  leftPanel.style.display  = '';
+  feedPanel.style.display  = '';
+  rightPanel.style.display = '';
+  feedPanel.style.gridColumn  = '';
+  rightPanel.style.gridColumn = '';
+
+  if (v === 'census') {
+    document.getElementById('main').style.gridTemplateColumns = '1fr 360px 280px';
+    restoreCensusPanel();
+  } else if (v === 'adt') {
+    leftPanel.style.display  = 'none';
+    rightPanel.style.display = 'none';
+    feedPanel.style.gridColumn = '1 / -1';
+    document.getElementById('main').style.gridTemplateColumns = '1fr';
+  } else if (v === 'agents') {
+    leftPanel.style.display  = 'none';
+    feedPanel.style.display  = 'none';
+    rightPanel.style.gridColumn = '1 / -1';
+    document.getElementById('main').style.gridTemplateColumns = '1fr';
+    renderAgentHub();
+  } else if (v === 'or') {
+    leftPanel.style.display  = 'none';
+    feedPanel.style.display  = 'none';
+    rightPanel.style.gridColumn = '1 / -1';
+    document.getElementById('main').style.gridTemplateColumns = '1fr';
+    renderOrView();
+  } else if (v === 'ops') {
+    leftPanel.style.display  = 'none';
+    feedPanel.style.display  = 'none';
+    rightPanel.style.gridColumn = '1 / -1';
+    document.getElementById('main').style.gridTemplateColumns = '1fr';
+    renderOpsView();
+  } else if (v === 'accountability') {
+    leftPanel.style.display  = 'none';
+    feedPanel.style.display  = 'none';
+    rightPanel.style.gridColumn = '1 / -1';
+    document.getElementById('main').style.gridTemplateColumns = '1fr';
+    renderAccountabilityView();
+  }
+}
+
+function renderAgentHub() {
+  const body = document.getElementById('analytics-body');
+  const pending = [];
+  adtEvents.slice(0, 30).forEach(ev => {
+    (ev.agent_recommendations || []).forEach(rec => {
+      if (!rec.actioned) pending.push({ ...rec, eventId: ev.event_id, patient: ev.patient_name, bed: ev.bed, acuity: ev.acuity });
+    });
+  });
+  if (pending.length === 0) {
+    body.innerHTML = '<div style="padding:20px;color:var(--text-dim);text-align:center">No pending agent recommendations</div>';
+    return;
+  }
+  const order = { STAT: 0, URGENT: 1, ROUTINE: 2 };
+  pending.sort((a, b) => (order[a.priority] || 2) - (order[b.priority] || 2));
+  body.innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:10px;padding:4px">
+      ${pending.slice(0, 20).map(rec => `
+        <div class="agent-full-card" style="margin-bottom:0">
+          <div class="afc-header">
+            <div style="width:10px;height:10px;border-radius:50%;background:${rec.color||'var(--agent)'};flex-shrink:0"></div>
+            <span class="afc-name" style="color:${rec.color||'var(--agent)'}">${rec.agent_name||rec.agent}</span>
+            <span class="agent-priority ${rec.priority}">${rec.priority}</span>
+          </div>
+          <div style="font-size:9px;font-weight:700;color:var(--text-dim);margin-bottom:4px">${rec.patient} · ${rec.bed} · <span class="acuity-pill ${rec.acuity}" style="font-size:8px">${rec.acuity}</span></div>
+          <div class="afc-body">${rec.recommendation}</div>
+          <div class="afc-actions">
+            <button class="action-btn primary" onclick='openActionModal(${JSON.stringify({ eventId: rec.eventId, rec }).replace(/</g,"&lt;")})'>Accept</button>
+            <button class="action-btn override" onclick='openActionModal(${JSON.stringify({ eventId: rec.eventId, rec, forceDecision:"overridden" }).replace(/</g,"&lt;")})'>Override</button>
+            <button class="action-btn escalate" onclick='openActionModal(${JSON.stringify({ eventId: rec.eventId, rec, forceDecision:"escalated" }).replace(/</g,"&lt;")})'>Escalate</button>
+          </div>
+          <div class="afc-assign">Assign to: <span class="afc-assign-val">${rec.assign_to||'—'}</span></div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function renderOrView() {
+  if (!orSchedule) return;
+  const body = document.getElementById('analytics-body');
+  const rooms = orSchedule.rooms;
+  body.innerHTML = `
+    <div style="padding:4px">
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(400px,1fr));gap:10px">
+        ${rooms.map(room => {
+          const active = room.cases.find(c=>c.status==='in-progress');
+          return `
+            <div style="background:white;border:1px solid var(--border);border-radius:7px;padding:12px;box-shadow:var(--shadow)">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border)">
+                <span style="font-size:12px;font-weight:800;color:var(--primary)">${room.room_id}</span>
+                <span class="or-status-pill ${room.status}">${room.status.toUpperCase()}</span>
+                ${active?`<span style="font-size:9px;font-weight:700;color:var(--critical);margin-left:auto">LIVE: ${active.procedure.substring(0,20)}</span>`:''}
+              </div>
+              <div style="display:flex;gap:2px;margin-bottom:10px;height:28px">
+                ${room.cases.map(c=>`
+                  <div style="flex:${c.duration_min};border-radius:3px;padding:3px 5px;font-size:7px;font-weight:700;display:flex;flex-direction:column;justify-content:center;
+                    background:${c.status==='completed'?'#f0fdf4':c.status==='in-progress'?'#fef2f2':'#f8fafc'};
+                    border:1px solid ${c.status==='completed'?'#bbf7d0':c.status==='in-progress'?'#fecaca':'var(--border)'}">
+                    <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.procedure.substring(0,12)}</div>
+                    <div style="color:var(--text-dim)">${c.duration_min}m</div>
+                  </div>
+                `).join('')}
+              </div>
+              ${room.cases.map(c=>`
+                <div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);font-size:9px">
+                  <span class="occ-status ${c.status}" style="min-width:80px;text-align:center">${c.status.toUpperCase()}</span>
+                  <div style="flex:1;min-width:0">
+                    <div style="font-weight:600">${c.procedure}</div>
+                    <div style="color:var(--accent)">${c.surgeon}</div>
+                    <div style="color:var(--text-dim)">${c.patient_name} · ${c.patient_age}yo</div>
+                  </div>
+                  <div style="text-align:right;flex-shrink:0">
+                    <div>${fmtTime(c.scheduled_start)}</div>
+                    <div style="color:${c.delay_min>10?'var(--critical)':'var(--low)'}">${c.delay_min>10?'+'+c.delay_min+'m delay':'On time'}</div>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          `;
+        }).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function metricRow(label, value, sub, good) {
+  return `
+    <div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border)">
+      <div style="flex:1;font-size:9px;color:var(--text-2)">${label}</div>
+      <div style="font-size:12px;font-weight:700;color:${good?'var(--low)':'var(--critical)'}">${value}</div>
+      ${sub?`<div style="font-size:8px;color:var(--text-dim);max-width:80px;text-align:right">${sub}</div>`:''}
+    </div>
+  `;
+}
+
+function renderOpsView() {
+  if (!opsMetrics) return;
+  const body = document.getElementById('analytics-body');
+  const ed = opsMetrics.ed_metrics, st = opsMetrics.staffing, tp = opsMetrics.throughput, ql = opsMetrics.quality;
+  body.innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:4px">
+      <div style="background:white;border:1px solid var(--border);border-radius:7px;padding:12px;box-shadow:var(--shadow)">
+        <div style="font-size:10px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Emergency Department</div>
+        ${metricRow('Door-to-Doc', ed.door_to_doc_min+'m', 'target ≤30m', ed.door_to_doc_min<=30)}
+        ${metricRow('Patients Waiting', ed.patients_waiting, '', true)}
+        ${metricRow('LWBS', ed.lwbs_count, 'left without being seen', ed.lwbs_count<5)}
+        ${metricRow('Boarding Count', ed.boarding_count, 'admitted waiting for beds', ed.boarding_count<8)}
+        ${metricRow('Avg ED LOS', ed.avg_los_hours+'h', 'target ≤4h', ed.avg_los_hours<=4)}
+      </div>
+      <div style="background:white;border:1px solid var(--border);border-radius:7px;padding:12px;box-shadow:var(--shadow)">
+        <div style="font-size:10px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Staffing</div>
+        ${metricRow('Nurses On Duty', st.nurses_on_duty, 'need '+st.nurses_needed, st.nurses_on_duty>=st.nurses_needed)}
+        ${metricRow('Open Shifts', st.open_shifts, 'unfilled', st.open_shifts<3)}
+        ${metricRow('Nurse:Patient Ratio', '1:'+st.nurse_patient_ratio.toFixed(1), 'target 1:4', st.nurse_patient_ratio<=4)}
+        ${metricRow('Physicians On Duty', st.physicians_on_duty, '', true)}
+      </div>
+      <div style="background:white;border:1px solid var(--border);border-radius:7px;padding:12px;box-shadow:var(--shadow)">
+        <div style="font-size:10px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Quality Indicators</div>
+        ${metricRow('30d Readmission Rate', ql.readmission_30d_rate+'%', 'target <15%', ql.readmission_30d_rate<15)}
+        ${metricRow('Patient Satisfaction', ql.patient_satisfaction+'%', 'HCAHPS', ql.patient_satisfaction>=85)}
+        ${metricRow('HAPI Rate', ql.hapi_rate+'/1000', 'hospital-acquired PI', ql.hapi_rate<1.5)}
+        ${metricRow('Fall Rate', ql.fall_rate+'/1000', '', ql.fall_rate<2)}
+        ${metricRow('CLABSI Rate', ql.clabsi_rate+'/1000', 'CLDs', ql.clabsi_rate<1)}
+      </div>
+      <div style="background:white;border:1px solid var(--border);border-radius:7px;padding:12px;box-shadow:var(--shadow)">
+        <div style="font-size:10px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Throughput Today</div>
+        ${metricRow('Admissions', tp.admissions_today, 'today', true)}
+        ${metricRow('Discharges', tp.discharges_today, 'today', true)}
+        ${metricRow('Transfers In', tp.transfers_in_today, 'today', true)}
+        ${metricRow('Avg Discharge Time', tp.avg_discharge_time, 'target before noon', true)}
+      </div>
+      <div style="background:white;border:1px solid var(--border);border-radius:7px;padding:12px;box-shadow:var(--shadow)">
+        <div style="font-size:10px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">OR Operations</div>
+        ${orSchedule ? `
+          ${metricRow('Total Cases Today', orSchedule.summary.total_cases, '', true)}
+          ${metricRow('In Progress', orSchedule.summary.in_progress, 'rooms active', true)}
+          ${metricRow('Completed', orSchedule.summary.completed, 'cases done', true)}
+          ${metricRow('On-Time Start Rate', orSchedule.summary.on_time_pct+'%', 'target >85%', orSchedule.summary.on_time_pct>=85)}
+          ${metricRow('Avg Delay', orSchedule.summary.avg_delay_min+'m', 'per case', orSchedule.summary.avg_delay_min<15)}
+        ` : '<div style="color:var(--text-dim)">Loading...</div>'}
+      </div>
+      <div style="background:white;border:1px solid var(--border);border-radius:7px;padding:12px;box-shadow:var(--shadow)">
+        <div style="font-size:10px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">ED Triage Distribution</div>
+        ${Object.entries(ed.triage_level_counts||{}).map(([lvl,cnt])=>`
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+            <div style="font-size:9px;font-weight:700;width:50px">${lvl}</div>
+            <div style="flex:1;height:16px;background:var(--bg);border-radius:3px;overflow:hidden">
+              <div style="height:100%;background:${lvl==='ESI-1'?'var(--critical)':lvl==='ESI-2'?'var(--high)':lvl==='ESI-3'?'var(--medium)':'var(--low)'};width:${Math.min(100,cnt*8)}%;border-radius:3px"></div>
+            </div>
+            <div style="font-size:9px;font-weight:700;width:20px;text-align:right">${cnt}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function renderAccountabilityView() {
+  const body = document.getElementById('analytics-body');
+  if (actionLog.length === 0) {
+    body.innerHTML = '<div style="padding:20px;color:var(--text-dim);text-align:center">No actions logged yet. Accept or override agent recommendations to build the audit trail.</div>';
+    return;
+  }
+  body.innerHTML = `
+    <div style="padding:4px">
+      <div style="background:white;border:1px solid var(--border);border-radius:7px;overflow:hidden;box-shadow:var(--shadow)">
+        <table style="width:100%;border-collapse:collapse;font-size:9px">
+          <thead>
+            <tr style="background:var(--surface2);border-bottom:2px solid var(--border)">
+              <th style="padding:8px 12px;text-align:left;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.5px">Time</th>
+              <th style="padding:8px 12px;text-align:left;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.5px">Agent</th>
+              <th style="padding:8px 12px;text-align:left;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.5px">Decision</th>
+              <th style="padding:8px 12px;text-align:left;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.5px">Actor</th>
+              <th style="padding:8px 12px;text-align:left;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.5px">Role</th>
+              <th style="padding:8px 12px;text-align:left;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.5px">Note</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${actionLog.map((a, i) => `
+              <tr style="border-bottom:1px solid var(--border);background:${i%2===0?'white':'var(--surface2)'}">
+                <td style="padding:7px 12px;color:var(--text-dim)">${fmtTime(a.timestamp)}</td>
+                <td style="padding:7px 12px;font-weight:600">${a.agent_id}</td>
+                <td style="padding:7px 12px">
+                  <span style="font-size:8px;font-weight:700;padding:2px 7px;border-radius:3px;
+                    background:${a.decision==='accepted'?'var(--low-bg)':a.decision==='overridden'?'var(--medium-bg)':'var(--critical-bg)'};
+                    color:${a.decision==='accepted'?'var(--low)':a.decision==='overridden'?'var(--medium)':'var(--critical)'}">
+                    ${a.decision.toUpperCase()}
+                  </span>
+                </td>
+                <td style="padding:7px 12px;font-weight:600;color:var(--accent)">${a.actor}</td>
+                <td style="padding:7px 12px;color:var(--text-dim)">${a.actor_role}</td>
+                <td style="padding:7px 12px;color:var(--text-dim);font-style:italic">${a.note||'—'}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+function renderRiskWatch() {
+  const patients = [];
+  if (!census) return;
+  Object.values(census.units).forEach(unit => {
+    unit.beds.forEach(bed => { if (bed.patient) patients.push(bed.patient); });
+  });
+  patients.sort((a,b) => (b.scores?.readmission_30d||0) - (a.scores?.readmission_30d||0));
+  const top = patients.slice(0, 6);
+  const container = document.getElementById('risk-watch-container');
+  if (!container) return;
+  container.innerHTML = `
+    <div style="font-size:9px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Patient Risk Watch</div>
+    ${top.map(p => `
+      <div style="display:flex;align-items:center;gap:6px;padding:5px 6px;border:1px solid var(--border);border-radius:5px;background:white;margin-bottom:3px;cursor:pointer" onclick='openPatientModal(${JSON.stringify(p).replace(/</g,"&lt;")})'>
+        <div style="font-size:8px;color:var(--text-dim);width:55px;flex-shrink:0">${p.bed_id}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:9px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.name||p.mrn}</div>
+          <div style="font-size:8px;color:var(--text-dim)">${p.age}yo · ${p.diagnosis.substring(0,18)}</div>
+        </div>
+        <span class="acuity-pill ${p.acuity}" style="font-size:7px;padding:1px 5px;flex-shrink:0">${p.acuity.substring(0,4)}</span>
+        <div style="font-size:10px;font-weight:800;color:${(p.scores?.readmission_30d||0)>0.6?'var(--critical)':'var(--high)'};width:28px;text-align:right;flex-shrink:0">${Math.round((p.scores?.readmission_30d||0)*100)}%</div>
+      </div>
+    `).join('')}
+  `;
+}
+
+function renderSepsisWatch() {
+  const patients = [];
+  if (!census) return;
+  Object.values(census.units).forEach(unit => {
+    unit.beds.forEach(bed => {
+      if (bed.patient && (bed.patient.scores?.sepsis_risk||0) > 0.35)
+        patients.push(bed.patient);
+    });
+  });
+  patients.sort((a,b) => (b.scores?.sepsis_risk||0) - (a.scores?.sepsis_risk||0));
+  const container = document.getElementById('sepsis-watch-container');
+  if (!container) return;
+  container.innerHTML = `
+    <div style="font-size:9px;font-weight:700;color:var(--critical);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;margin-top:8px">
+      Sepsis Watch (${patients.length} patients)
+    </div>
+    ${patients.slice(0,4).map(p=>`
+      <div style="display:flex;align-items:center;gap:6px;padding:4px 6px;border:1px solid #fecaca;border-radius:4px;background:var(--critical-bg);margin-bottom:3px;cursor:pointer" onclick='openPatientModal(${JSON.stringify(p).replace(/</g,"&lt;")})'>
+        <div style="width:6px;height:6px;border-radius:50%;background:var(--critical);animation:blink 1.5s infinite;flex-shrink:0"></div>
+        <div style="font-size:9px;font-weight:600;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.name||p.mrn}</div>
+        <div style="font-size:8px;color:var(--text-dim)">${p.bed_id}</div>
+        <div style="font-size:10px;font-weight:800;color:var(--critical)">${Math.round((p.scores?.sepsis_risk||0)*100)}%</div>
+      </div>
+    `).join('')}
+  `;
 }
 
 // ══════════════════════════════════════════════════════════
