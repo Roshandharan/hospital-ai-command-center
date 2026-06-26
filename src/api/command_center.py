@@ -2,6 +2,7 @@
 Hospital AI Command Center — API routes.
 Serves census, OR schedule, ADT events, operational metrics,
 agent recommendations, and action accountability log.
+Real LangGraph pipeline available via /api/v1/pipeline/run.
 """
 from __future__ import annotations
 
@@ -11,15 +12,29 @@ import random
 import uuid
 from datetime import datetime
 from pathlib import Path
-from typing import AsyncGenerator
+from typing import AsyncGenerator, Optional
 
 import structlog
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, BackgroundTasks, Request
 from fastapi.responses import HTMLResponse, StreamingResponse
 from pydantic import BaseModel
 
 log = structlog.get_logger(__name__)
 router = APIRouter()
+
+# Pipeline singletons — initialized lazily on first use
+_pipeline_instance = None
+
+
+def _get_pipeline():
+    global _pipeline_instance
+    if _pipeline_instance is None:
+        try:
+            from src.core import get_pipeline
+            _pipeline_instance = get_pipeline()
+        except Exception as e:
+            log.warning("pipeline.init_failed", error=str(e))
+    return _pipeline_instance
 
 DATA_DIR   = Path(__file__).parent.parent.parent / "data"
 STATIC_DIR = Path(__file__).parent.parent.parent / "static"
@@ -435,16 +450,75 @@ async def get_actions(limit: int = 50):
 
 @router.get("/api/v1/health")
 async def health():
+    pipeline_ready = _get_pipeline() is not None
     return {
         "status": "healthy",
-        "version": "2.0.0",
+        "version": "3.0.0",
         "system": "Hospital AI Command Center",
         "data_loaded": _census is not None,
         "patients": _census["summary"]["occupied"] if _census else 0,
         "sse_clients": len(_sse_clients),
         "events_processed": _event_counter,
         "actions_logged": len(_action_log),
+        "pipeline_ready": pipeline_ready,
     }
+
+
+# ── Pipeline endpoint ─────────────────────────────────────────────────────────
+
+class PipelineRunRequest(BaseModel):
+    mrn: str
+    age: Optional[int] = None
+    sex: Optional[str] = None
+    patient_class: str = "I"
+    location: str = ""
+    diagnosis: Optional[str] = None
+    language: Optional[str] = None
+    event_type: str = "A01"
+
+
+@router.post("/api/v1/pipeline/run")
+async def run_pipeline(req: PipelineRunRequest):
+    """Run the real LangGraph multi-agent pipeline for a given patient."""
+    pipeline = _get_pipeline()
+    if not pipeline:
+        return {"error": "Pipeline not initialized", "success": False}
+
+    from src.ingestion.hl7_parser import AdmissionData, ADTEventType, PatientIdentifiers
+    admission = AdmissionData(
+        patient=PatientIdentifiers(mrn=req.mrn, encounter_id=str(uuid.uuid4())[:12]),
+        event_type=ADTEventType(req.event_type) if req.event_type in ("A01","A02","A03","A08") else ADTEventType.ADMIT,
+        admit_datetime=datetime.now(),
+        facility="Hospital AI Command Center",
+        location=req.location,
+        patient_class=req.patient_class,
+        age=req.age,
+        sex=req.sex,
+        language=req.language,
+        admitting_diagnosis=req.diagnosis,
+    )
+
+    try:
+        result = await pipeline.run(admission)
+        return {
+            "success": True,
+            "session_id": result["session_id"],
+            "acuity_tier": result.get("acuity_tier"),
+            "readmission_30d": result.get("readmission_30d"),
+            "deterioration": result.get("deterioration"),
+            "sepsis_risk": result.get("sepsis_risk"),
+            "discharge_today": result.get("discharge_today"),
+            "los_predicted_days": result.get("los_predicted_days"),
+            "agent_recommendations": result.get("agent_recommendations", []),
+            "intervention_plan": result.get("intervention_plan"),
+            "rag_sources": result.get("rag_sources", []),
+            "risk_factors": result.get("risk_factors", []),
+            "pipeline_duration_ms": result.get("pipeline_duration_ms"),
+            "demo_mode": result.get("risk_demo_mode", True),
+        }
+    except Exception as e:
+        log.error("pipeline.run_failed", error=str(e))
+        return {"success": False, "error": str(e)}
 
 @router.get("/api/v1/stream")
 async def stream(request: Request):

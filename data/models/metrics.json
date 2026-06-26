@@ -1,0 +1,27 @@
+[
+  {
+    "model": "readmission",
+    "auc": 0.9748,
+    "auprc": 0.9549
+  },
+  {
+    "model": "deterioration",
+    "auc": 0.9988,
+    "auprc": 0.9977
+  },
+  {
+    "model": "sepsis",
+    "auc": 1.0,
+    "auprc": 1.0
+  },
+  {
+    "model": "discharge_today",
+    "auc": 0.9413,
+    "auprc": 0.991
+  },
+  {
+    "model": "discharge_tomorrow",
+    "auc": 0.9983,
+    "auprc": 1.0
+  }
+]
