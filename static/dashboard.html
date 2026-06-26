@@ -1006,6 +1006,10 @@ let eventCount = 0, charts = {}, vitalsChart = null;
 let pendingActions = 0;
 let _actionContext = {};
 let _currentPatientForModal = null;
+// Global rec store — avoids inline JSON escaping in onclick handlers
+const _recStore = {};
+function storeRec(key, data) { _recStore[key] = data; return key; }
+function getRec(key) { return _recStore[key]; }
 let currentView = 'census';
 
 // ══════════════════════════════════════════════════════════
@@ -1876,12 +1880,12 @@ function switchView(v) {
 }
 
 const AGENT_DEFINITIONS = [
-  { id: 'SepsisAgent',    name: 'Sepsis Surveillance',    sub: 'SEP-1 bundle · 6h window',            color: '#dc2626' },
-  { id: 'RiskAgent',      name: 'Risk Stratification',    sub: '30d readmission · LOS prediction',    color: '#2563eb' },
-  { id: 'DischargeAgent', name: 'Discharge Planning',     sub: 'Discharge barriers · care routing',   color: '#16a34a' },
-  { id: 'BedAgent',       name: 'Bed Management',         sub: 'Capacity · transfer routing',         color: '#7c3aed' },
-  { id: 'TriageAgent',    name: 'Triage Optimization',    sub: 'ESI level · door-to-doc',             color: '#ea580c' },
-  { id: 'MedSafetyAgent', name: 'Medication Safety',      sub: 'Interactions · dose · allergy check', color: '#0891b2' },
+  { id: 'SepsisAgent',    name: 'Sepsis Surveillance',    sub: 'SEP-1 bundle · 6h window',            color: '#dc2626', threshold: 'sepsis_risk > 0.25' },
+  { id: 'RiskAgent',      name: 'Risk Stratification',    sub: '30d readmission · LOS prediction',    color: '#2563eb', threshold: 'readmission_30d > 0.30' },
+  { id: 'DischargeAgent', name: 'Discharge Planning',     sub: 'Discharge barriers · care routing',   color: '#16a34a', threshold: 'discharge_today > 0.25' },
+  { id: 'BedAgent',       name: 'Bed Management',         sub: 'Capacity · transfer routing',         color: '#7c3aed', threshold: 'acuity CRITICAL or HIGH' },
+  { id: 'TriageAgent',    name: 'Triage Optimization',    sub: 'ESI level · door-to-doc',             color: '#ea580c', threshold: 'every ADT event' },
+  { id: 'MedSafetyAgent', name: 'Medication Safety',      sub: 'Interactions · dose · allergy check', color: '#0891b2', threshold: 'medication_count > 0' },
 ];
 let _selectedAgentId = 'SepsisAgent';
 
@@ -1898,13 +1902,36 @@ function _collectAgentRecs() {
   return map;
 }
 
+function buildRecMap() {
+  const recMap = {};
+  AGENT_DEFINITIONS.forEach(a => { recMap[a.id] = []; });
+  adtEvents.slice(0, 80).forEach(ev => {
+    (ev.agent_recommendations || []).forEach(rec => {
+      const agentKey = Object.keys(recMap).find(k =>
+        (rec.agent || '').toLowerCase().includes(k.toLowerCase().replace('agent','').trim()) ||
+        (rec.agent_name || '').toLowerCase().includes(k.toLowerCase().replace('agent','').trim())
+      );
+      const key = agentKey || (AGENT_DEFINITIONS[Math.abs((ev.event_id || 0)) % AGENT_DEFINITIONS.length] || AGENT_DEFINITIONS[0]).id;
+      if (recMap[key]) {
+        recMap[key].push({
+          rec, patient: ev.patient_name, mrn: ev.mrn,
+          bed: ev.bed, acuity: ev.acuity,
+          eventId: ev.event_id, timestamp: ev.timestamp,
+          scores: ev.scores || {},
+        });
+      }
+    });
+  });
+  return recMap;
+}
+
 function renderAgentHub() {
-  const recMap = _collectAgentRecs();
-  const totalPending = Object.values(recMap).reduce((s, r) => s + r.filter(x => !x.actioned && !x._actioned).length, 0);
+  const recMap = buildRecMap();
+  const totalPending = Object.values(recMap).reduce((s, r) => s + r.filter(x => !x.rec.actioned && !x.rec._actioned).length, 0);
   const ptEl = document.getElementById('agent-hub-pending-total');
   if (ptEl) ptEl.textContent = `${totalPending} pending recommendation${totalPending !== 1 ? 's' : ''}`;
   _renderAgentSidebar(recMap);
-  _renderAgentDetail(recMap);
+  renderAgentDetail_v2(_selectedAgentId, recMap);
 }
 
 function _renderAgentSidebar(recMap) {
@@ -1912,7 +1939,8 @@ function _renderAgentSidebar(recMap) {
   if (!el) return;
   el.innerHTML = AGENT_DEFINITIONS.map(d => {
     const recs = recMap[d.id] || [];
-    const pending = recs.filter(r => !r.actioned && !r._actioned).length;
+    // support both new {rec} format and old flat format
+    const pending = recs.filter(r => r.rec ? !r.rec.actioned && !r.rec._actioned : !r.actioned && !r._actioned).length;
     const active = d.id === _selectedAgentId;
     const countColor = pending > 0 ? d.color : 'var(--text-dim)';
     return `
@@ -1930,62 +1958,109 @@ function _renderAgentSidebar(recMap) {
 
 function selectAgent(id) {
   _selectedAgentId = id;
-  const recMap = _collectAgentRecs();
+  const recMap = buildRecMap();
   _renderAgentSidebar(recMap);
-  _renderAgentDetail(recMap);
+  renderAgentDetail_v2(id, recMap);
 }
 
-function _renderAgentDetail(recMap) {
-  const el = document.getElementById('agent-detail-new');
-  if (!el) return;
-  const def = AGENT_DEFINITIONS.find(d => d.id === _selectedAgentId) || AGENT_DEFINITIONS[0];
-  const recs = (recMap[def.id] || []).slice(0, 40);
-  const pending = recs.filter(r => !r.actioned && !r._actioned);
-  el.innerHTML = `
-    <div class="agent-detail-header">
-      <div class="agent-sidebar-dot" style="background:${def.color};width:14px;height:14px"></div>
-      <div>
-        <div class="agent-detail-title">${def.name}</div>
-        <div class="agent-detail-desc">${def.sub} &nbsp;·&nbsp; ${pending.length} pending · ${recs.length - pending.length} actioned</div>
-      </div>
-      ${pending.length > 0 ? `<button class="ia-btn accept" style="margin-left:auto" onclick="acceptAllVisible()">Accept All (${pending.length})</button>` : ''}
-    </div>
-    ${recs.length === 0
-      ? `<div style="padding:40px;color:var(--text-dim);text-align:center;font-size:11px">No recommendations from this agent yet.<br>Recommendations appear as ADT events are processed.</div>`
-      : `<table class="agent-patient-table">
-          <thead><tr>
-            <th>Patient</th><th>Bed</th><th>Acuity</th><th>Priority</th>
-            <th>Recommendation</th><th>Assign To</th><th>Action</th>
-          </tr></thead>
-          <tbody>
-            ${recs.map((rec, i) => {
-              const priColor = rec.priority === 'STAT' ? 'var(--critical)' : rec.priority === 'URGENT' ? 'var(--high)' : 'var(--text-dim)';
-              const actioned = rec.actioned || rec._actioned;
-              return `
-                <tr id="agent-row-${def.id}-${i}">
-                  <td style="font-weight:700;font-size:10px;white-space:nowrap">${rec.patient || '—'}</td>
-                  <td style="font-size:10px;color:var(--accent);white-space:nowrap">${rec.bed || '—'}</td>
-                  <td><span class="acuity-pill ${rec.acuity}" style="font-size:8px">${rec.acuity || '—'}</span></td>
-                  <td style="font-weight:700;font-size:9px;color:${priColor}">${rec.priority || '—'}</td>
-                  <td><div class="recommendation-text">${rec.recommendation || rec.action || '—'}</div></td>
-                  <td style="font-size:9px;color:var(--text-dim);white-space:nowrap">${rec.assign_to || '—'}</td>
-                  <td>
-                    ${actioned
-                      ? `<span class="actioned-inline ${actioned}">${actioned.charAt(0).toUpperCase()+actioned.slice(1)}</span>`
-                      : `<div class="inline-action-group">
-                          <button class="ia-btn accept"   onclick="inlineAction('${def.id}',${i},'accepted')">Accept</button>
-                          <button class="ia-btn override" onclick="inlineAction('${def.id}',${i},'overridden')">Override</button>
-                          <button class="ia-btn escalate" onclick="inlineAction('${def.id}',${i},'escalated')">Escalate</button>
-                        </div>`
-                    }
-                  </td>
-                </tr>
-              `;
-            }).join('')}
-          </tbody>
-        </table>`
-    }
-  `;
+function renderAgentDetail_v2(agentId, recMap) {
+  const panel = document.getElementById('agent-detail-new');
+  if (!panel) { console.error('agent-detail-new not found'); return; }
+
+  const agent = AGENT_DEFINITIONS.find(a => a.id === agentId);
+  if (!agent) { panel.innerHTML = '<div style="padding:20px;color:var(--text-dim)">Select an agent</div>'; return; }
+
+  const recs    = (recMap || buildRecMap())[agentId] || [];
+  const pending = recs.filter(r => !r.rec.actioned && !r.rec._actioned);
+  const done    = recs.filter(r =>  r.rec.actioned  ||  r.rec._actioned);
+  const order   = { STAT:0, URGENT:1, ROUTINE:2 };
+  pending.sort((a,b) => (order[a.rec.priority]||2) - (order[b.rec.priority]||2));
+
+  const parts = [];
+
+  // Header
+  parts.push('<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;padding-bottom:14px;border-bottom:2px solid var(--border)">');
+  parts.push('<div style="width:14px;height:14px;border-radius:50%;background:' + agent.color + '"></div>');
+  parts.push('<div><div style="font-size:16px;font-weight:800;color:' + agent.color + '">' + agent.name + ' Agent</div>');
+  parts.push('<div style="font-size:9px;color:var(--text-dim);margin-top:2px">' + agent.sub + ' · fires when: ' + agent.threshold + '</div></div>');
+  parts.push('<div style="margin-left:auto;display:flex;gap:20px;text-align:center">');
+  parts.push('<div><div style="font-size:24px;font-weight:800;color:' + agent.color + '">' + pending.length + '</div><div style="font-size:8px;color:var(--text-dim)">PENDING</div></div>');
+  parts.push('<div><div style="font-size:24px;font-weight:800;color:var(--low)">' + done.length + '</div><div style="font-size:8px;color:var(--text-dim)">ACTIONED</div></div>');
+  parts.push('</div></div>');
+
+  if (pending.length === 0) {
+    parts.push('<div style="padding:16px;text-align:center;color:var(--low);font-weight:700;background:var(--low-bg);border:1px solid #bbf7d0;border-radius:8px;margin-bottom:12px">All recommendations actioned for this agent</div>');
+  } else {
+    parts.push('<div style="font-size:10px;font-weight:700;color:' + agent.color + ';text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Pending (' + pending.length + ')</div>');
+    parts.push('<div style="background:white;border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,0.06)">');
+    parts.push('<table style="width:100%;border-collapse:collapse">');
+    parts.push('<thead><tr style="background:var(--surface2);border-bottom:2px solid var(--border)">');
+    ['Patient','Acuity','Priority','Recommendation','Action'].forEach(function(h) {
+      parts.push('<th style="padding:8px 12px;text-align:left;font-size:8px;font-weight:700;color:var(--text-dim);text-transform:uppercase">' + h + '</th>');
+    });
+    parts.push('</tr></thead><tbody>');
+
+    pending.forEach(function(item, idx) {
+      var r = item.rec;
+      var key  = 'rec_' + agentId + '_pending_' + idx;
+      var keyO = key + '_ovr';
+      var keyE = key + '_esc';
+      storeRec(key,  { eventId: item.eventId, rec: r });
+      storeRec(keyO, { eventId: item.eventId, rec: r, forceDecision: 'overridden' });
+      storeRec(keyE, { eventId: item.eventId, rec: r, forceDecision: 'escalated' });
+
+      var s  = item.scores || {};
+      var sv = agentId === 'SepsisAgent'   ? s.sepsis_risk :
+               agentId === 'RiskAgent'     ? s.readmission_30d :
+               agentId === 'DischargeAgent'? s.discharge_today : null;
+      var sp = sv !== null && sv !== undefined ? Math.round((sv||0)*100) : null;
+      var sc = sp > 60 ? 'var(--critical)' : sp > 35 ? 'var(--high)' : 'var(--medium)';
+
+      parts.push('<tr style="border-bottom:1px solid var(--border)">');
+      parts.push('<td style="padding:10px 12px">');
+      parts.push('<div style="font-size:10px;font-weight:700">' + (item.patient||'—') + '</div>');
+      parts.push('<div style="font-size:8px;color:var(--text-dim)">' + (item.bed||'—') + ' · ' + fmtTime(item.timestamp) + '</div>');
+      if (sp !== null) {
+        parts.push('<div style="display:flex;align-items:center;gap:5px;margin-top:3px">');
+        parts.push('<div style="flex:1;height:4px;background:var(--bg);border-radius:2px;overflow:hidden">');
+        parts.push('<div style="height:100%;width:' + sp + '%;background:' + sc + ';border-radius:2px"></div></div>');
+        parts.push('<span style="font-size:8px;font-weight:700;color:' + sc + '">' + sp + '%</span></div>');
+      }
+      parts.push('</td>');
+      parts.push('<td style="padding:10px 12px"><span class="acuity-pill ' + (item.acuity||'') + '" style="font-size:8px">' + (item.acuity||'—') + '</span></td>');
+      parts.push('<td style="padding:10px 12px"><span class="agent-priority ' + (r.priority||'') + '">' + (r.priority||'—') + '</span></td>');
+      parts.push('<td style="padding:10px 12px;max-width:320px"><div style="font-size:9px;color:var(--text-2);line-height:1.5">' + (r.recommendation||r.action||'—') + '</div><div style="font-size:8px;color:var(--accent);margin-top:3px">→ ' + (r.assign_to||'—') + '</div></td>');
+      parts.push('<td style="padding:10px 12px"><div style="display:flex;gap:3px">');
+      parts.push('<button class="ia-btn accept"   onclick="openActionModal(getRec(\'' + key  + '\'))" style="font-size:8px;padding:3px 8px">Accept</button>');
+      parts.push('<button class="ia-btn override" onclick="openActionModal(getRec(\'' + keyO + '\'))" style="font-size:8px;padding:3px 8px">Override</button>');
+      parts.push('<button class="ia-btn escalate" onclick="openActionModal(getRec(\'' + keyE + '\'))" style="font-size:8px;padding:3px 8px">Escalate</button>');
+      parts.push('</div></td></tr>');
+    });
+
+    parts.push('</tbody></table></div>');
+  }
+
+  if (done.length > 0) {
+    parts.push('<div style="font-size:10px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Actioned (' + done.length + ')</div>');
+    parts.push('<div style="background:white;border:1px solid var(--border);border-radius:8px;overflow:hidden">');
+    parts.push('<table style="width:100%;border-collapse:collapse"><tbody>');
+    done.slice(0, 8).forEach(function(item) {
+      var r = item.rec;
+      var a = r.actioned || {};
+      if (typeof a === 'string') a = { decision: a, actor: 'Staff' };
+      var dc = a.decision==='accepted'?'var(--low)':a.decision==='overridden'?'var(--medium)':'var(--critical)';
+      var decisionLabel = r._actioned || a.decision || '';
+      parts.push('<tr style="border-bottom:1px solid var(--border)">');
+      parts.push('<td style="padding:8px 12px"><div style="font-size:10px;font-weight:700">' + (item.patient||'—') + '</div><div style="font-size:8px;color:var(--text-dim)">' + (item.bed||'—') + '</div></td>');
+      parts.push('<td style="padding:8px 12px"><span class="acuity-pill ' + (item.acuity||'') + '" style="font-size:8px">' + (item.acuity||'—') + '</span></td>');
+      parts.push('<td style="padding:8px 12px;max-width:280px"><div style="font-size:9px;color:var(--text-dim)">' + (r.recommendation||r.action||'').substring(0,80) + '...</div></td>');
+      parts.push('<td style="padding:8px 12px"><span style="font-size:8px;font-weight:700;padding:2px 7px;border-radius:3px;background:' + dc + '20;color:' + dc + '">' + decisionLabel.toUpperCase() + '</span><div style="font-size:8px;color:var(--text-dim);margin-top:2px">' + (a.actor||'') + '</div></td>');
+      parts.push('</tr>');
+    });
+    parts.push('</tbody></table></div>');
+  }
+
+  panel.innerHTML = parts.join('');
 }
 
 function inlineAction(agentId, rowIdx, decision) {
