@@ -791,6 +791,52 @@ body {
       <div class="panel-body" id="alerts-body"></div>
     </div>
   </div>
+
+  <!-- Agent Hub Full View -->
+  <div id="agent-full-view" style="display:none;flex-direction:column;grid-column:1/-1;background:white;border:1px solid var(--border);border-radius:8px;overflow:hidden;box-shadow:var(--shadow);height:100%;min-height:0">
+    <div style="padding:10px 14px;border-bottom:1px solid var(--border);background:var(--surface2);display:flex;align-items:center;gap:10px;flex-shrink:0">
+      <div style="font-size:12px;font-weight:800;color:var(--primary)">AI Agent Hub</div>
+      <div id="agent-hub-pending-total" style="font-size:10px;color:var(--text-dim)"></div>
+      <div style="margin-left:auto;display:flex;gap:6px">
+        <button class="action-btn secondary" style="font-size:9px" onclick="switchView('census')">Back to Census</button>
+        <button class="action-btn secondary" style="font-size:9px" onclick="switchView('accountability')">Audit Log</button>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:240px 1fr;flex:1;min-height:0;overflow:hidden">
+      <div id="agent-sidebar-new" style="border-right:1px solid var(--border);overflow-y:auto;background:var(--surface2);padding:8px"></div>
+      <div id="agent-detail-new" style="overflow-y:auto;padding:14px"></div>
+    </div>
+  </div>
+
+  <!-- OR Board Full View -->
+  <div id="or-full-view" style="display:none;flex-direction:column;grid-column:1/-1;background:white;border:1px solid var(--border);border-radius:8px;overflow:hidden;box-shadow:var(--shadow);height:100%;min-height:0">
+    <div style="padding:10px 14px;border-bottom:1px solid var(--border);background:var(--surface2);display:flex;align-items:center;gap:10px;flex-shrink:0">
+      <div style="font-size:12px;font-weight:800;color:var(--primary)">OR Board</div>
+      <div id="or-full-meta" style="font-size:10px;color:var(--text-dim)"></div>
+      <button class="action-btn secondary" style="font-size:9px;margin-left:auto" onclick="switchView('census')">Back</button>
+    </div>
+    <div style="flex:1;overflow-y:auto;padding:12px" id="or-full-body"></div>
+  </div>
+
+  <!-- Operations Full View -->
+  <div id="ops-full-view" style="display:none;flex-direction:column;grid-column:1/-1;background:white;border:1px solid var(--border);border-radius:8px;overflow:hidden;box-shadow:var(--shadow);height:100%;min-height:0">
+    <div style="padding:10px 14px;border-bottom:1px solid var(--border);background:var(--surface2);display:flex;align-items:center;gap:10px;flex-shrink:0">
+      <div style="font-size:12px;font-weight:800;color:var(--primary)">Operational Metrics</div>
+      <button class="action-btn secondary" style="font-size:9px;margin-left:auto" onclick="switchView('census')">Back</button>
+    </div>
+    <div style="flex:1;overflow-y:auto;padding:12px" id="ops-full-body"></div>
+  </div>
+
+  <!-- Accountability Full View -->
+  <div id="acct-full-view" style="display:none;flex-direction:column;grid-column:1/-1;background:white;border:1px solid var(--border);border-radius:8px;overflow:hidden;box-shadow:var(--shadow);height:100%;min-height:0">
+    <div style="padding:10px 14px;border-bottom:1px solid var(--border);background:var(--surface2);display:flex;align-items:center;gap:10px;flex-shrink:0">
+      <div style="font-size:12px;font-weight:800;color:var(--primary)">Action Accountability Log</div>
+      <div id="acct-total" style="font-size:10px;color:var(--text-dim)"></div>
+      <button class="action-btn secondary" style="font-size:9px;margin-left:auto" onclick="switchView('census')">Back</button>
+    </div>
+    <div style="flex:1;overflow-y:auto;padding:12px" id="acct-full-body"></div>
+  </div>
+
 </div>
 
 <!-- ═══════ MODALS ═══════ -->
@@ -1796,51 +1842,36 @@ function restoreCensusPanel() {
 function switchView(v) {
   currentView = v;
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-  const tabMap = {census:'nav-census', adt:'nav-adt', agents:'nav-agents', or:'nav-or', ops:'nav-ops', accountability:'nav-acct'};
+  const tabMap = {census:'nav-census',adt:'nav-adt',agents:'nav-agents',or:'nav-or',ops:'nav-ops',accountability:'nav-acct'};
   document.getElementById(tabMap[v])?.classList.add('active');
 
-  const leftPanel  = document.getElementById('left-panel');
-  const feedPanel  = document.getElementById('feed-panel');
-  const rightPanel = document.getElementById('right-panel');
-
-  leftPanel.style.display  = '';
-  feedPanel.style.display  = '';
-  rightPanel.style.display = '';
-  feedPanel.style.gridColumn  = '';
-  rightPanel.style.gridColumn = '';
+  const L = document.getElementById('left-panel');
+  const F = document.getElementById('feed-panel');
+  const R = document.getElementById('right-panel');
+  const fullViews = ['agent-full-view','or-full-view','ops-full-view','acct-full-view'];
+  fullViews.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
 
   if (v === 'census') {
     document.getElementById('main').style.gridTemplateColumns = '1fr 360px 280px';
+    L.style.display = F.style.display = R.style.display = '';
+    F.style.gridColumn = R.style.gridColumn = '';
     restoreCensusPanel();
   } else if (v === 'adt') {
-    leftPanel.style.display  = 'none';
-    rightPanel.style.display = 'none';
-    feedPanel.style.gridColumn = '1 / -1';
     document.getElementById('main').style.gridTemplateColumns = '1fr';
-  } else if (v === 'agents') {
-    leftPanel.style.display  = 'none';
-    feedPanel.style.display  = 'none';
-    rightPanel.style.gridColumn = '1 / -1';
+    L.style.display = R.style.display = 'none';
+    F.style.display = ''; F.style.gridColumn = '1 / -1';
+    R.style.gridColumn = '';
+  } else {
     document.getElementById('main').style.gridTemplateColumns = '1fr';
-    renderAgentHub();
-  } else if (v === 'or') {
-    leftPanel.style.display  = 'none';
-    feedPanel.style.display  = 'none';
-    rightPanel.style.gridColumn = '1 / -1';
-    document.getElementById('main').style.gridTemplateColumns = '1fr';
-    renderOrView();
-  } else if (v === 'ops') {
-    leftPanel.style.display  = 'none';
-    feedPanel.style.display  = 'none';
-    rightPanel.style.gridColumn = '1 / -1';
-    document.getElementById('main').style.gridTemplateColumns = '1fr';
-    renderOpsView();
-  } else if (v === 'accountability') {
-    leftPanel.style.display  = 'none';
-    feedPanel.style.display  = 'none';
-    rightPanel.style.gridColumn = '1 / -1';
-    document.getElementById('main').style.gridTemplateColumns = '1fr';
-    renderAccountabilityView();
+    L.style.display = F.style.display = R.style.display = 'none';
+    F.style.gridColumn = R.style.gridColumn = '';
+    const viewMap = {agents:'agent-full-view', or:'or-full-view', ops:'ops-full-view', accountability:'acct-full-view'};
+    const el = document.getElementById(viewMap[v]);
+    if (el) el.style.display = 'flex';
+    if (v === 'agents')          renderAgentHub();
+    else if (v === 'or')         renderOrFullView();
+    else if (v === 'ops')        renderOpsFullView();
+    else if (v === 'accountability') renderAcctView();
   }
 }
 
@@ -1868,24 +1899,20 @@ function _collectAgentRecs() {
 }
 
 function renderAgentHub() {
-  const body = document.getElementById('analytics-body');
   const recMap = _collectAgentRecs();
-  body.innerHTML = `
-    <div id="agent-hub-layout">
-      <div class="agent-sidebar" id="agent-sidebar-list"></div>
-      <div class="agent-detail-panel" id="agent-detail-panel"></div>
-    </div>
-  `;
-  renderAgentSidebar(recMap);
-  renderAgentDetail(recMap);
+  const totalPending = Object.values(recMap).reduce((s, r) => s + r.filter(x => !x.actioned && !x._actioned).length, 0);
+  const ptEl = document.getElementById('agent-hub-pending-total');
+  if (ptEl) ptEl.textContent = `${totalPending} pending recommendation${totalPending !== 1 ? 's' : ''}`;
+  _renderAgentSidebar(recMap);
+  _renderAgentDetail(recMap);
 }
 
-function renderAgentSidebar(recMap) {
-  const el = document.getElementById('agent-sidebar-list');
+function _renderAgentSidebar(recMap) {
+  const el = document.getElementById('agent-sidebar-new');
   if (!el) return;
   el.innerHTML = AGENT_DEFINITIONS.map(d => {
     const recs = recMap[d.id] || [];
-    const pending = recs.filter(r => !r.actioned).length;
+    const pending = recs.filter(r => !r.actioned && !r._actioned).length;
     const active = d.id === _selectedAgentId;
     const countColor = pending > 0 ? d.color : 'var(--text-dim)';
     return `
@@ -1904,101 +1931,269 @@ function renderAgentSidebar(recMap) {
 function selectAgent(id) {
   _selectedAgentId = id;
   const recMap = _collectAgentRecs();
-  renderAgentSidebar(recMap);
-  renderAgentDetail(recMap);
+  _renderAgentSidebar(recMap);
+  _renderAgentDetail(recMap);
 }
 
-function renderAgentDetail(recMap) {
-  const el = document.getElementById('agent-detail-panel');
+function _renderAgentDetail(recMap) {
+  const el = document.getElementById('agent-detail-new');
   if (!el) return;
   const def = AGENT_DEFINITIONS.find(d => d.id === _selectedAgentId) || AGENT_DEFINITIONS[0];
-  const recs = (recMap[def.id] || []).slice(0, 30);
-  const pending = recs.filter(r => !r.actioned);
+  const recs = (recMap[def.id] || []).slice(0, 40);
+  const pending = recs.filter(r => !r.actioned && !r._actioned);
   el.innerHTML = `
     <div class="agent-detail-header">
       <div class="agent-sidebar-dot" style="background:${def.color};width:14px;height:14px"></div>
       <div>
         <div class="agent-detail-title">${def.name}</div>
-        <div class="agent-detail-desc">${def.sub} &nbsp;·&nbsp; ${pending.length} pending</div>
+        <div class="agent-detail-desc">${def.sub} &nbsp;·&nbsp; ${pending.length} pending · ${recs.length - pending.length} actioned</div>
       </div>
-      ${pending.length > 0 ? `<button class="ia-btn accept" style="margin-left:auto" onclick="acceptAllVisible()">Accept All</button>` : ''}
+      ${pending.length > 0 ? `<button class="ia-btn accept" style="margin-left:auto" onclick="acceptAllVisible()">Accept All (${pending.length})</button>` : ''}
     </div>
-    ${recs.length === 0 ? `<div style="padding:20px;color:var(--text-dim);text-align:center;font-size:10px">No recommendations from this agent</div>` : `
-    <table class="agent-patient-table">
-      <thead>
-        <tr>
-          <th>Patient</th>
-          <th>Bed</th>
-          <th>Acuity</th>
-          <th>Priority</th>
-          <th>Recommendation</th>
-          <th>Assign To</th>
-          <th>Action</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${recs.map((rec, i) => {
-          const priColor = rec.priority === 'STAT' ? 'var(--critical)' : rec.priority === 'URGENT' ? 'var(--high)' : 'var(--text-dim)';
-          const actioned = rec.actioned || rec._actioned;
-          return `
-            <tr id="agent-row-${def.id}-${i}">
-              <td style="font-weight:700;font-size:10px;white-space:nowrap">${rec.patient || '—'}</td>
-              <td style="font-size:10px;color:var(--accent);white-space:nowrap">${rec.bed || '—'}</td>
-              <td><span class="acuity-pill ${rec.acuity}" style="font-size:8px">${rec.acuity || '—'}</span></td>
-              <td style="font-weight:700;font-size:9px;color:${priColor}">${rec.priority || '—'}</td>
-              <td><div class="recommendation-text">${rec.recommendation || rec.action || '—'}</div></td>
-              <td style="font-size:9px;color:var(--text-dim);white-space:nowrap">${rec.assign_to || '—'}</td>
-              <td>
-                ${actioned
-                  ? `<span class="actioned-inline ${actioned}">${actioned.charAt(0).toUpperCase()+actioned.slice(1)}</span>`
-                  : `<div class="inline-action-group">
-                      <button class="ia-btn accept"   onclick="inlineAction('${def.id}',${i},'accepted')">Accept</button>
-                      <button class="ia-btn override" onclick="inlineAction('${def.id}',${i},'overridden')">Override</button>
-                      <button class="ia-btn escalate" onclick="inlineAction('${def.id}',${i},'escalated')">Escalate</button>
-                    </div>`
-                }
-              </td>
-            </tr>
-          `;
-        }).join('')}
-      </tbody>
-    </table>`}
+    ${recs.length === 0
+      ? `<div style="padding:40px;color:var(--text-dim);text-align:center;font-size:11px">No recommendations from this agent yet.<br>Recommendations appear as ADT events are processed.</div>`
+      : `<table class="agent-patient-table">
+          <thead><tr>
+            <th>Patient</th><th>Bed</th><th>Acuity</th><th>Priority</th>
+            <th>Recommendation</th><th>Assign To</th><th>Action</th>
+          </tr></thead>
+          <tbody>
+            ${recs.map((rec, i) => {
+              const priColor = rec.priority === 'STAT' ? 'var(--critical)' : rec.priority === 'URGENT' ? 'var(--high)' : 'var(--text-dim)';
+              const actioned = rec.actioned || rec._actioned;
+              return `
+                <tr id="agent-row-${def.id}-${i}">
+                  <td style="font-weight:700;font-size:10px;white-space:nowrap">${rec.patient || '—'}</td>
+                  <td style="font-size:10px;color:var(--accent);white-space:nowrap">${rec.bed || '—'}</td>
+                  <td><span class="acuity-pill ${rec.acuity}" style="font-size:8px">${rec.acuity || '—'}</span></td>
+                  <td style="font-weight:700;font-size:9px;color:${priColor}">${rec.priority || '—'}</td>
+                  <td><div class="recommendation-text">${rec.recommendation || rec.action || '—'}</div></td>
+                  <td style="font-size:9px;color:var(--text-dim);white-space:nowrap">${rec.assign_to || '—'}</td>
+                  <td>
+                    ${actioned
+                      ? `<span class="actioned-inline ${actioned}">${actioned.charAt(0).toUpperCase()+actioned.slice(1)}</span>`
+                      : `<div class="inline-action-group">
+                          <button class="ia-btn accept"   onclick="inlineAction('${def.id}',${i},'accepted')">Accept</button>
+                          <button class="ia-btn override" onclick="inlineAction('${def.id}',${i},'overridden')">Override</button>
+                          <button class="ia-btn escalate" onclick="inlineAction('${def.id}',${i},'escalated')">Escalate</button>
+                        </div>`
+                    }
+                  </td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>`
+    }
   `;
 }
 
 function inlineAction(agentId, rowIdx, decision) {
   const recMap = _collectAgentRecs();
-  const recs = (recMap[agentId] || []).slice(0, 30);
+  const recs = (recMap[agentId] || []).slice(0, 40);
   const rec = recs[rowIdx];
   if (!rec) return;
   const eventIdx = adtEvents.findIndex(e => e.event_id === rec.eventId);
   if (eventIdx >= 0) {
-    const recInEvent = (adtEvents[eventIdx].agent_recommendations || []).find(r => r.recommendation === rec.recommendation || r.action === rec.action);
+    const recInEvent = (adtEvents[eventIdx].agent_recommendations || []).find(r =>
+      r.recommendation === rec.recommendation || r.action === rec.action);
     if (recInEvent) recInEvent.actioned = decision;
   }
   rec._actioned = decision;
-  actionLog.unshift({ ts: new Date().toISOString(), action: decision, patient: rec.patient, bed: rec.bed, agent: agentId, rec: rec.recommendation || rec.action || '' });
-  if (actionLog.length > 100) actionLog.length = 100;
+  actionLog.unshift({
+    timestamp: new Date().toISOString(), decision, patient: rec.patient, bed: rec.bed,
+    agent_id: agentId, actor: 'Dr. Admin', actor_role: 'Attending Physician',
+    note: rec.recommendation || rec.action || '',
+  });
+  if (actionLog.length > 200) actionLog.length = 200;
   const newMap = _collectAgentRecs();
-  renderAgentSidebar(newMap);
-  const el = document.getElementById('agent-detail-panel');
-  if (!el) return;
+  _renderAgentSidebar(newMap);
   const row = document.getElementById(`agent-row-${agentId}-${rowIdx}`);
   if (row) {
     const td = row.querySelector('td:last-child');
     if (td) td.innerHTML = `<span class="actioned-inline ${decision}">${decision.charAt(0).toUpperCase()+decision.slice(1)}</span>`;
   }
+  const ptEl = document.getElementById('agent-hub-pending-total');
+  if (ptEl) {
+    const total = Object.values(newMap).reduce((s, r) => s + r.filter(x => !x.actioned && !x._actioned).length, 0);
+    ptEl.textContent = `${total} pending recommendation${total !== 1 ? 's' : ''}`;
+  }
+  const acctBadge = document.getElementById('nav-acct-badge');
+  if (acctBadge) acctBadge.textContent = actionLog.length;
 }
 
 function acceptAllVisible() {
   const recMap = _collectAgentRecs();
-  const recs = (recMap[_selectedAgentId] || []).slice(0, 30);
+  const recs = (recMap[_selectedAgentId] || []).slice(0, 40);
   recs.forEach((rec, i) => {
-    if (!rec.actioned && !rec._actioned) {
-      inlineAction(_selectedAgentId, i, 'accepted');
-    }
+    if (!rec.actioned && !rec._actioned) inlineAction(_selectedAgentId, i, 'accepted');
   });
 }
+
+function renderOrFullView() {
+  if (!orSchedule) return;
+  const body = document.getElementById('or-full-body');
+  const meta = document.getElementById('or-full-meta');
+  if (!body) return;
+  const s = orSchedule.summary || {};
+  if (meta) meta.textContent = `${s.total_cases||0} cases · ${s.in_progress||0} active · ${s.on_time_pct||0}% on time`;
+  const rooms = orSchedule.rooms || [];
+  body.innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(420px,1fr));gap:12px">
+      ${rooms.map(room => {
+        const active = room.cases.find(c=>c.status==='in-progress');
+        return `
+          <div style="background:white;border:1px solid var(--border);border-radius:8px;padding:14px;box-shadow:var(--shadow)">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border)">
+              <span style="font-size:13px;font-weight:800;color:var(--primary)">${room.room_id}</span>
+              <span class="or-status-pill ${room.status}">${room.status.toUpperCase()}</span>
+              ${active?`<span style="font-size:9px;font-weight:700;color:var(--critical);margin-left:auto">LIVE: ${active.procedure.substring(0,24)}</span>`:''}
+            </div>
+            <div style="display:flex;gap:2px;margin-bottom:12px;height:30px">
+              ${room.cases.map(c=>`
+                <div style="flex:${c.duration_min};border-radius:3px;padding:3px 5px;font-size:7px;font-weight:700;display:flex;flex-direction:column;justify-content:center;min-width:0;
+                  background:${c.status==='completed'?'#f0fdf4':c.status==='in-progress'?'#fef2f2':'#f8fafc'};
+                  border:1px solid ${c.status==='completed'?'#bbf7d0':c.status==='in-progress'?'#fecaca':'var(--border)'}">
+                  <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.procedure.substring(0,14)}</div>
+                  <div style="color:var(--text-dim)">${c.duration_min}m</div>
+                </div>
+              `).join('')}
+            </div>
+            ${room.cases.map(c=>`
+              <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);font-size:9px">
+                <span class="occ-status ${c.status}" style="min-width:80px;text-align:center">${c.status.toUpperCase()}</span>
+                <div style="flex:1;min-width:0">
+                  <div style="font-weight:700">${c.procedure}</div>
+                  <div style="color:var(--accent)">${c.surgeon}</div>
+                  <div style="color:var(--text-dim)">${c.patient_name} · ${c.patient_age}yo</div>
+                </div>
+                <div style="text-align:right;flex-shrink:0">
+                  <div style="font-weight:600">${fmtTime(c.scheduled_start)}</div>
+                  <div style="color:${c.delay_min>10?'var(--critical)':'var(--low)'}">
+                    ${c.delay_min>10?'+'+c.delay_min+'m delay':'On time'}</div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+}
+
+function renderOpsFullView() {
+  if (!opsMetrics) return;
+  const body = document.getElementById('ops-full-body');
+  if (!body) return;
+  const ed = opsMetrics.ed_metrics, st = opsMetrics.staffing, tp = opsMetrics.throughput, ql = opsMetrics.quality;
+  body.innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+      <div style="background:white;border:1px solid var(--border);border-radius:8px;padding:14px;box-shadow:var(--shadow)">
+        <div style="font-size:10px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">Emergency Department</div>
+        ${metricRow('Door-to-Doc', ed.door_to_doc_min+'m', 'target ≤30m', ed.door_to_doc_min<=30)}
+        ${metricRow('Patients Waiting', ed.patients_waiting, '', true)}
+        ${metricRow('LWBS', ed.lwbs_count, 'left without being seen', ed.lwbs_count<5)}
+        ${metricRow('Boarding Count', ed.boarding_count, 'admitted waiting for beds', ed.boarding_count<8)}
+        ${metricRow('Avg ED LOS', ed.avg_los_hours+'h', 'target ≤4h', ed.avg_los_hours<=4)}
+      </div>
+      <div style="background:white;border:1px solid var(--border);border-radius:8px;padding:14px;box-shadow:var(--shadow)">
+        <div style="font-size:10px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">Staffing</div>
+        ${metricRow('Nurses On Duty', st.nurses_on_duty, 'need '+st.nurses_needed, st.nurses_on_duty>=st.nurses_needed)}
+        ${metricRow('Open Shifts', st.open_shifts, 'unfilled', st.open_shifts<3)}
+        ${metricRow('Nurse:Patient Ratio', '1:'+st.nurse_patient_ratio.toFixed(1), 'target 1:4', st.nurse_patient_ratio<=4)}
+        ${metricRow('Physicians On Duty', st.physicians_on_duty, '', true)}
+      </div>
+      <div style="background:white;border:1px solid var(--border);border-radius:8px;padding:14px;box-shadow:var(--shadow)">
+        <div style="font-size:10px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">Quality Indicators</div>
+        ${metricRow('30d Readmission Rate', ql.readmission_30d_rate+'%', 'target <15%', ql.readmission_30d_rate<15)}
+        ${metricRow('Patient Satisfaction', ql.patient_satisfaction+'%', 'HCAHPS', ql.patient_satisfaction>=85)}
+        ${metricRow('HAPI Rate', ql.hapi_rate+'/1000', 'hospital-acquired PI', ql.hapi_rate<1.5)}
+        ${metricRow('Fall Rate', ql.fall_rate+'/1000', '', ql.fall_rate<2)}
+        ${metricRow('CLABSI Rate', ql.clabsi_rate+'/1000', 'CLDs', ql.clabsi_rate<1)}
+      </div>
+      <div style="background:white;border:1px solid var(--border);border-radius:8px;padding:14px;box-shadow:var(--shadow)">
+        <div style="font-size:10px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">Throughput Today</div>
+        ${metricRow('Admissions', tp.admissions_today, 'today', true)}
+        ${metricRow('Discharges', tp.discharges_today, 'today', true)}
+        ${metricRow('Transfers In', tp.transfers_in_today, 'today', true)}
+        ${metricRow('Avg Discharge Time', tp.avg_discharge_time, 'target before noon', true)}
+      </div>
+      <div style="background:white;border:1px solid var(--border);border-radius:8px;padding:14px;box-shadow:var(--shadow)">
+        <div style="font-size:10px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">OR Operations</div>
+        ${orSchedule ? `
+          ${metricRow('Total Cases Today', orSchedule.summary.total_cases, '', true)}
+          ${metricRow('In Progress', orSchedule.summary.in_progress, 'rooms active', true)}
+          ${metricRow('Completed', orSchedule.summary.completed, 'cases done', true)}
+          ${metricRow('On-Time Start Rate', orSchedule.summary.on_time_pct+'%', 'target >85%', orSchedule.summary.on_time_pct>=85)}
+          ${metricRow('Avg Delay', orSchedule.summary.avg_delay_min+'m', 'per case', orSchedule.summary.avg_delay_min<15)}
+        ` : '<div style="color:var(--text-dim)">Loading...</div>'}
+      </div>
+      <div style="background:white;border:1px solid var(--border);border-radius:8px;padding:14px;box-shadow:var(--shadow)">
+        <div style="font-size:10px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">ED Triage Distribution</div>
+        ${Object.entries(ed.triage_level_counts||{}).map(([lvl,cnt])=>`
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+            <div style="font-size:9px;font-weight:700;width:50px">${lvl}</div>
+            <div style="flex:1;height:18px;background:var(--bg);border-radius:3px;overflow:hidden">
+              <div style="height:100%;background:${lvl==='ESI-1'?'var(--critical)':lvl==='ESI-2'?'var(--high)':lvl==='ESI-3'?'var(--medium)':'var(--low)'};width:${Math.min(100,cnt*8)}%;border-radius:3px"></div>
+            </div>
+            <div style="font-size:9px;font-weight:700;width:24px;text-align:right">${cnt}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function renderAcctView() {
+  const body = document.getElementById('acct-full-body');
+  const totalEl = document.getElementById('acct-total');
+  if (!body) return;
+  if (totalEl) totalEl.textContent = `${actionLog.length} action${actionLog.length !== 1 ? 's' : ''} logged`;
+  if (actionLog.length === 0) {
+    body.innerHTML = '<div style="padding:40px;color:var(--text-dim);text-align:center;font-size:11px">No actions logged yet.<br>Accept or override agent recommendations to build the audit trail.</div>';
+    return;
+  }
+  body.innerHTML = `
+    <div style="background:white;border:1px solid var(--border);border-radius:8px;overflow:hidden;box-shadow:var(--shadow)">
+      <table style="width:100%;border-collapse:collapse;font-size:10px">
+        <thead>
+          <tr style="background:var(--surface2);border-bottom:2px solid var(--border)">
+            <th style="padding:10px 14px;text-align:left;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.5px">Time</th>
+            <th style="padding:10px 14px;text-align:left;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.5px">Agent</th>
+            <th style="padding:10px 14px;text-align:left;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.5px">Decision</th>
+            <th style="padding:10px 14px;text-align:left;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.5px">Actor</th>
+            <th style="padding:10px 14px;text-align:left;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.5px">Role</th>
+            <th style="padding:10px 14px;text-align:left;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.5px">Patient</th>
+            <th style="padding:10px 14px;text-align:left;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.5px">Note</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${actionLog.map((a, i) => `
+            <tr style="border-bottom:1px solid var(--border);background:${i%2===0?'white':'var(--surface2)'}">
+              <td style="padding:8px 14px;color:var(--text-dim);white-space:nowrap">${fmtTime(a.timestamp)}</td>
+              <td style="padding:8px 14px;font-weight:600;color:var(--primary)">${a.agent_id||'—'}</td>
+              <td style="padding:8px 14px">
+                <span style="font-size:8px;font-weight:700;padding:2px 8px;border-radius:3px;
+                  background:${a.decision==='accepted'?'var(--low-bg)':a.decision==='overridden'?'var(--medium-bg)':'var(--critical-bg)'};
+                  color:${a.decision==='accepted'?'var(--low)':a.decision==='overridden'?'var(--medium)':'var(--critical)'}">
+                  ${(a.decision||'').toUpperCase()}
+                </span>
+              </td>
+              <td style="padding:8px 14px;font-weight:600;color:var(--accent)">${a.actor||'—'}</td>
+              <td style="padding:8px 14px;color:var(--text-dim)">${a.actor_role||'—'}</td>
+              <td style="padding:8px 14px;font-weight:600">${a.patient||'—'}</td>
+              <td style="padding:8px 14px;color:var(--text-dim);font-style:italic;max-width:280px">${a.note||'—'}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+function renderAccountabilityView() { renderAcctView(); }
+function renderOrView() { renderOrFullView(); }
+function renderOpsView() { renderOpsFullView(); }
 
 function renderOrView() {
   if (!orSchedule) return;
