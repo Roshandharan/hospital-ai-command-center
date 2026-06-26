@@ -166,16 +166,17 @@ body {
   border: 1px solid #bfdbfe;
 }
 .panel-body {
-  flex: 1; overflow-y: auto;
+  flex: 1; overflow-y: auto; overflow-x: hidden;
   padding: 8px;
+  min-height: 0;
 }
 .panel-body::-webkit-scrollbar { width: 4px; }
 .panel-body::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
 
 /* ── LEFT PANEL ── */
-#left-panel { display: flex; flex-direction: column; gap: 8px; }
-#census-panel { flex: 1.4; }
-#or-panel { flex: 0.65; }
+#left-panel { display: flex; flex-direction: column; gap: 8px; min-height: 0; overflow: hidden; }
+#census-panel { flex: 1.4; min-height: 0; overflow: hidden; }
+#or-panel { flex: 0.65; min-height: 0; overflow: hidden; }
 #ops-panel { height: 100px; flex-shrink: 0; }
 
 /* ── CENSUS / BED MAP ── */
@@ -343,40 +344,60 @@ body {
 .ev-click-hint { font-size: 8px; color: var(--text-dim); margin-top: 4px; text-align:center; }
 
 /* ── RIGHT PANEL ── */
-#right-panel { display: flex; flex-direction: column; gap: 8px; }
-#agent-hub-panel { flex: 1.2; }
-#alerts-panel { flex: 0.8; }
+#right-panel { display: flex; flex-direction: column; gap: 8px; min-height: 0; overflow: hidden; }
+#agent-hub-panel { flex: 1.2; min-height: 0; overflow: hidden; }
+#alerts-panel { flex: 0.8; min-height: 0; overflow: hidden; }
 
-/* ── AGENT HUB ── */
-.agent-rec-card {
-  background: white;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 8px 10px;
-  margin-bottom: 6px;
-  box-shadow: var(--shadow);
+/* ── ANALYTICS BODY ── */
+#analytics-body {
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
-.agent-rec-header {
-  display: flex; align-items: center; gap: 6px;
-  margin-bottom: 6px;
+#agent-hub-layout {
+  flex: 1;
+  min-height: 0;
 }
-.agent-icon { font-size: 13px; }
-.agent-name { font-size: 9px; font-weight: 700; }
-.agent-priority {
-  font-size: 8px; font-weight: 700; padding: 1px 6px;
-  border-radius: 3px; margin-left: auto;
-}
-.agent-priority.STAT   { background:#fef2f2; color:var(--critical); border:1px solid #fecaca; }
-.agent-priority.URGENT { background:#fff7ed; color:var(--high);     border:1px solid #fed7aa; }
-.agent-priority.ROUTINE{ background:var(--surface2); color:var(--text-dim); border:1px solid var(--border); }
-.agent-confidence {
-  font-size: 8px; color: var(--text-dim);
-  display: flex; align-items: center; gap: 4px;
-}
-.conf-bar { width: 50px; height: 3px; background: var(--border); border-radius: 2px; overflow:hidden; }
-.conf-fill { height:100%; background: var(--agent); }
-.agent-rec-text { font-size: 9px; color: var(--text-2); margin-bottom: 6px; line-height: 1.4; }
-.agent-actions { display: flex; gap: 4px; flex-wrap: wrap; }
+
+/* ── AGENT HUB TWO-COLUMN ── */
+#agent-hub-layout { display: grid; grid-template-columns: 260px 1fr; gap: 0; height: 100%; overflow: hidden; }
+.agent-sidebar { border-right: 1px solid var(--border); overflow-y: auto; background: var(--surface2); padding: 8px; }
+.agent-sidebar-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 6px; cursor: pointer; margin-bottom: 4px; border: 1px solid transparent; background: white; transition: all 0.15s; }
+.agent-sidebar-item:hover { border-color: var(--accent); box-shadow: var(--shadow); }
+.agent-sidebar-item.active { border-color: var(--accent); background: var(--accent-bg); box-shadow: var(--shadow); }
+.agent-sidebar-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.agent-sidebar-info { flex: 1; min-width: 0; }
+.agent-sidebar-name { font-size: 10px; font-weight: 700; color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.agent-sidebar-sub { font-size: 8px; color: var(--text-dim); margin-top: 1px; }
+.agent-sidebar-count { font-size: 11px; font-weight: 800; min-width: 20px; text-align: right; flex-shrink: 0; }
+.agent-detail-panel { overflow-y: auto; padding: 12px; }
+.agent-detail-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 2px solid var(--border); }
+.agent-detail-title { font-size: 14px; font-weight: 800; color: var(--primary); }
+.agent-detail-desc { font-size: 10px; color: var(--text-dim); margin-top: 2px; }
+.agent-patient-table { width: 100%; border-collapse: collapse; font-size: 10px; }
+.agent-patient-table thead tr { background: var(--surface2); border-bottom: 2px solid var(--border); }
+.agent-patient-table thead th { padding: 7px 10px; text-align: left; font-size: 8px; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
+.agent-patient-table tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; }
+.agent-patient-table tbody tr:hover { background: var(--surface2); }
+.agent-patient-table td { padding: 8px 10px; vertical-align: middle; }
+.recommendation-text { font-size: 9px; color: var(--text-2); line-height: 1.4; max-width: 320px; }
+.inline-action-group { display: flex; gap: 4px; flex-shrink: 0; }
+.ia-btn { font-size: 8px; font-weight: 700; padding: 3px 8px; border-radius: 4px; cursor: pointer; border: 1px solid; font-family: inherit; white-space: nowrap; transition: all 0.1s; }
+.ia-btn.accept   { background: var(--low); color: white; border-color: var(--low); }
+.ia-btn.override { background: white; color: var(--medium); border-color: var(--medium); }
+.ia-btn.escalate { background: white; color: var(--critical); border-color: var(--critical); }
+.ia-btn.accept:hover   { background: #15803d; }
+.ia-btn.override:hover { background: var(--medium-bg); }
+.ia-btn.escalate:hover { background: var(--critical-bg); }
+.actioned-inline { font-size: 8px; font-weight: 700; padding: 2px 8px; border-radius: 3px; white-space: nowrap; }
+.actioned-inline.accepted   { background: var(--low-bg); color: var(--low); border: 1px solid #bbf7d0; }
+.actioned-inline.overridden { background: var(--medium-bg); color: var(--medium); border: 1px solid #fde68a; }
+.actioned-inline.escalated  { background: var(--critical-bg); color: var(--critical); border: 1px solid #fecaca; }
+.stat-bar-mini { width: 60px; height: 5px; background: var(--bg); border-radius: 3px; overflow: hidden; margin-top: 2px; }
+.stat-bar-mini-fill { height: 100%; border-radius: 3px; }
+/* legacy card classes kept for action-btn used in other panels */
 .action-btn {
   font-size: 8px; font-weight: 600; padding: 3px 8px;
   border-radius: 4px; cursor: pointer; border: 1px solid;
@@ -387,11 +408,6 @@ body {
 .action-btn.primary:hover { background: #1d4ed8; }
 .action-btn.secondary { background: white; color: var(--text-2); border-color: var(--border2); }
 .action-btn.secondary:hover { background: var(--surface2); }
-.action-btn.danger { background: var(--critical); color: white; border-color: var(--critical); }
-.action-btn.warning { background: var(--medium); color: white; border-color: var(--medium); }
-.action-btn.success { background: var(--low); color: white; border-color: var(--low); }
-.action-btn.override { background: white; color: var(--medium); border-color: var(--medium); }
-.action-btn.escalate { background: white; color: var(--critical); border-color: var(--critical); }
 .actioned-banner {
   margin-top: 5px; padding: 4px 8px;
   border-radius: 4px; font-size: 8px;
@@ -400,12 +416,6 @@ body {
 .actioned-banner.accepted  { background: var(--low-bg);     border: 1px solid #bbf7d0; color: var(--low); }
 .actioned-banner.overridden{ background: var(--medium-bg);  border: 1px solid #fde68a; color: var(--medium); }
 .actioned-banner.escalated { background: var(--critical-bg);border: 1px solid #fecaca; color: var(--critical); }
-.assign-row {
-  display: flex; align-items: center; gap: 5px;
-  margin-top: 4px;
-}
-.assign-lbl { font-size: 8px; color: var(--text-dim); }
-.assign-val { font-size: 8px; font-weight: 600; color: var(--accent); }
 
 /* ── ACUITY TILES ── */
 .acuity-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-bottom: 8px; }
@@ -1834,41 +1844,160 @@ function switchView(v) {
   }
 }
 
-function renderAgentHub() {
-  const body = document.getElementById('analytics-body');
-  const pending = [];
-  adtEvents.slice(0, 30).forEach(ev => {
+const AGENT_DEFINITIONS = [
+  { id: 'SepsisAgent',    name: 'Sepsis Surveillance',    sub: 'SEP-1 bundle · 6h window',            color: '#dc2626' },
+  { id: 'RiskAgent',      name: 'Risk Stratification',    sub: '30d readmission · LOS prediction',    color: '#2563eb' },
+  { id: 'DischargeAgent', name: 'Discharge Planning',     sub: 'Discharge barriers · care routing',   color: '#16a34a' },
+  { id: 'BedAgent',       name: 'Bed Management',         sub: 'Capacity · transfer routing',         color: '#7c3aed' },
+  { id: 'TriageAgent',    name: 'Triage Optimization',    sub: 'ESI level · door-to-doc',             color: '#ea580c' },
+  { id: 'MedSafetyAgent', name: 'Medication Safety',      sub: 'Interactions · dose · allergy check', color: '#0891b2' },
+];
+let _selectedAgentId = 'SepsisAgent';
+
+function _collectAgentRecs() {
+  const map = {};
+  AGENT_DEFINITIONS.forEach(d => { map[d.id] = []; });
+  adtEvents.slice(0, 60).forEach(ev => {
     (ev.agent_recommendations || []).forEach(rec => {
-      if (!rec.actioned) pending.push({ ...rec, eventId: ev.event_id, patient: ev.patient_name, bed: ev.bed, acuity: ev.acuity });
+      const agentKey = Object.keys(map).find(k => (rec.agent || '').toLowerCase().includes(k.toLowerCase().replace('agent','').trim()) || (rec.agent_name || '').toLowerCase().includes(k.toLowerCase().replace('agent','').trim()));
+      const key = agentKey || (AGENT_DEFINITIONS[Math.abs((ev.event_id || 0)) % AGENT_DEFINITIONS.length] || AGENT_DEFINITIONS[0]).id;
+      if (map[key]) map[key].push({ ...rec, eventId: ev.event_id, patient: ev.patient_name, bed: ev.bed, acuity: ev.acuity, mrn: ev.mrn });
     });
   });
-  if (pending.length === 0) {
-    body.innerHTML = '<div style="padding:20px;color:var(--text-dim);text-align:center">No pending agent recommendations</div>';
-    return;
-  }
-  const order = { STAT: 0, URGENT: 1, ROUTINE: 2 };
-  pending.sort((a, b) => (order[a.priority] || 2) - (order[b.priority] || 2));
+  return map;
+}
+
+function renderAgentHub() {
+  const body = document.getElementById('analytics-body');
+  const recMap = _collectAgentRecs();
   body.innerHTML = `
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:10px;padding:4px">
-      ${pending.slice(0, 20).map(rec => `
-        <div class="agent-full-card" style="margin-bottom:0">
-          <div class="afc-header">
-            <div style="width:10px;height:10px;border-radius:50%;background:${rec.color||'var(--agent)'};flex-shrink:0"></div>
-            <span class="afc-name" style="color:${rec.color||'var(--agent)'}">${rec.agent_name||rec.agent}</span>
-            <span class="agent-priority ${rec.priority}">${rec.priority}</span>
-          </div>
-          <div style="font-size:9px;font-weight:700;color:var(--text-dim);margin-bottom:4px">${rec.patient} · ${rec.bed} · <span class="acuity-pill ${rec.acuity}" style="font-size:8px">${rec.acuity}</span></div>
-          <div class="afc-body">${rec.recommendation}</div>
-          <div class="afc-actions">
-            <button class="action-btn primary" onclick='openActionModal(${JSON.stringify({ eventId: rec.eventId, rec }).replace(/</g,"&lt;")})'>Accept</button>
-            <button class="action-btn override" onclick='openActionModal(${JSON.stringify({ eventId: rec.eventId, rec, forceDecision:"overridden" }).replace(/</g,"&lt;")})'>Override</button>
-            <button class="action-btn escalate" onclick='openActionModal(${JSON.stringify({ eventId: rec.eventId, rec, forceDecision:"escalated" }).replace(/</g,"&lt;")})'>Escalate</button>
-          </div>
-          <div class="afc-assign">Assign to: <span class="afc-assign-val">${rec.assign_to||'—'}</span></div>
-        </div>
-      `).join('')}
+    <div id="agent-hub-layout">
+      <div class="agent-sidebar" id="agent-sidebar-list"></div>
+      <div class="agent-detail-panel" id="agent-detail-panel"></div>
     </div>
   `;
+  renderAgentSidebar(recMap);
+  renderAgentDetail(recMap);
+}
+
+function renderAgentSidebar(recMap) {
+  const el = document.getElementById('agent-sidebar-list');
+  if (!el) return;
+  el.innerHTML = AGENT_DEFINITIONS.map(d => {
+    const recs = recMap[d.id] || [];
+    const pending = recs.filter(r => !r.actioned).length;
+    const active = d.id === _selectedAgentId;
+    const countColor = pending > 0 ? d.color : 'var(--text-dim)';
+    return `
+      <div class="agent-sidebar-item${active?' active':''}" onclick="selectAgent('${d.id}')">
+        <div class="agent-sidebar-dot" style="background:${d.color}"></div>
+        <div class="agent-sidebar-info">
+          <div class="agent-sidebar-name">${d.name}</div>
+          <div class="agent-sidebar-sub">${d.sub}</div>
+        </div>
+        <div class="agent-sidebar-count" style="color:${countColor}">${pending > 0 ? pending : '—'}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function selectAgent(id) {
+  _selectedAgentId = id;
+  const recMap = _collectAgentRecs();
+  renderAgentSidebar(recMap);
+  renderAgentDetail(recMap);
+}
+
+function renderAgentDetail(recMap) {
+  const el = document.getElementById('agent-detail-panel');
+  if (!el) return;
+  const def = AGENT_DEFINITIONS.find(d => d.id === _selectedAgentId) || AGENT_DEFINITIONS[0];
+  const recs = (recMap[def.id] || []).slice(0, 30);
+  const pending = recs.filter(r => !r.actioned);
+  el.innerHTML = `
+    <div class="agent-detail-header">
+      <div class="agent-sidebar-dot" style="background:${def.color};width:14px;height:14px"></div>
+      <div>
+        <div class="agent-detail-title">${def.name}</div>
+        <div class="agent-detail-desc">${def.sub} &nbsp;·&nbsp; ${pending.length} pending</div>
+      </div>
+      ${pending.length > 0 ? `<button class="ia-btn accept" style="margin-left:auto" onclick="acceptAllVisible()">Accept All</button>` : ''}
+    </div>
+    ${recs.length === 0 ? `<div style="padding:20px;color:var(--text-dim);text-align:center;font-size:10px">No recommendations from this agent</div>` : `
+    <table class="agent-patient-table">
+      <thead>
+        <tr>
+          <th>Patient</th>
+          <th>Bed</th>
+          <th>Acuity</th>
+          <th>Priority</th>
+          <th>Recommendation</th>
+          <th>Assign To</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${recs.map((rec, i) => {
+          const priColor = rec.priority === 'STAT' ? 'var(--critical)' : rec.priority === 'URGENT' ? 'var(--high)' : 'var(--text-dim)';
+          const actioned = rec.actioned || rec._actioned;
+          return `
+            <tr id="agent-row-${def.id}-${i}">
+              <td style="font-weight:700;font-size:10px;white-space:nowrap">${rec.patient || '—'}</td>
+              <td style="font-size:10px;color:var(--accent);white-space:nowrap">${rec.bed || '—'}</td>
+              <td><span class="acuity-pill ${rec.acuity}" style="font-size:8px">${rec.acuity || '—'}</span></td>
+              <td style="font-weight:700;font-size:9px;color:${priColor}">${rec.priority || '—'}</td>
+              <td><div class="recommendation-text">${rec.recommendation || rec.action || '—'}</div></td>
+              <td style="font-size:9px;color:var(--text-dim);white-space:nowrap">${rec.assign_to || '—'}</td>
+              <td>
+                ${actioned
+                  ? `<span class="actioned-inline ${actioned}">${actioned.charAt(0).toUpperCase()+actioned.slice(1)}</span>`
+                  : `<div class="inline-action-group">
+                      <button class="ia-btn accept"   onclick="inlineAction('${def.id}',${i},'accepted')">Accept</button>
+                      <button class="ia-btn override" onclick="inlineAction('${def.id}',${i},'overridden')">Override</button>
+                      <button class="ia-btn escalate" onclick="inlineAction('${def.id}',${i},'escalated')">Escalate</button>
+                    </div>`
+                }
+              </td>
+            </tr>
+          `;
+        }).join('')}
+      </tbody>
+    </table>`}
+  `;
+}
+
+function inlineAction(agentId, rowIdx, decision) {
+  const recMap = _collectAgentRecs();
+  const recs = (recMap[agentId] || []).slice(0, 30);
+  const rec = recs[rowIdx];
+  if (!rec) return;
+  const eventIdx = adtEvents.findIndex(e => e.event_id === rec.eventId);
+  if (eventIdx >= 0) {
+    const recInEvent = (adtEvents[eventIdx].agent_recommendations || []).find(r => r.recommendation === rec.recommendation || r.action === rec.action);
+    if (recInEvent) recInEvent.actioned = decision;
+  }
+  rec._actioned = decision;
+  actionLog.unshift({ ts: new Date().toISOString(), action: decision, patient: rec.patient, bed: rec.bed, agent: agentId, rec: rec.recommendation || rec.action || '' });
+  if (actionLog.length > 100) actionLog.length = 100;
+  const newMap = _collectAgentRecs();
+  renderAgentSidebar(newMap);
+  const el = document.getElementById('agent-detail-panel');
+  if (!el) return;
+  const row = document.getElementById(`agent-row-${agentId}-${rowIdx}`);
+  if (row) {
+    const td = row.querySelector('td:last-child');
+    if (td) td.innerHTML = `<span class="actioned-inline ${decision}">${decision.charAt(0).toUpperCase()+decision.slice(1)}</span>`;
+  }
+}
+
+function acceptAllVisible() {
+  const recMap = _collectAgentRecs();
+  const recs = (recMap[_selectedAgentId] || []).slice(0, 30);
+  recs.forEach((rec, i) => {
+    if (!rec.actioned && !rec._actioned) {
+      inlineAction(_selectedAgentId, i, 'accepted');
+    }
+  });
 }
 
 function renderOrView() {
