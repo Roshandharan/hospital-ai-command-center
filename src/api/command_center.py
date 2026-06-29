@@ -12,7 +12,7 @@ import random
 import uuid
 from datetime import datetime
 from pathlib import Path
-from typing import AsyncGenerator, Optional
+from typing import AsyncGenerator, Literal, Optional
 
 import structlog
 from fastapi import APIRouter, BackgroundTasks, Request
@@ -45,7 +45,7 @@ _or_schedule: dict = {}
 _adt_events: list = []
 _operational_metrics: dict = {}
 _action_log: list = []          # accountability trail
-_sse_clients: list[asyncio.Queue] = []
+_sse_clients: dict[int, asyncio.Queue] = {}  # id(queue) → queue for O(1) removal
 _event_counter = 0
 
 STAFF = [
@@ -224,14 +224,13 @@ def _build_agent_recommendations(acuity: str, scores: dict, diagnosis: str) -> l
 
 async def broadcast(event_type: str, data: dict):
     dead = []
-    for q in _sse_clients:
+    for qid, q in list(_sse_clients.items()):
         try:
             await q.put({"type": event_type, "data": data})
         except Exception:
-            dead.append(q)
-    for q in dead:
-        if q in _sse_clients:
-            _sse_clients.remove(q)
+            dead.append(qid)
+    for qid in dead:
+        _sse_clients.pop(qid, None)
 
 
 async def live_feed_loop():
@@ -278,23 +277,6 @@ async def live_feed_loop():
             }
 
             agent_recs = _build_agent_recommendations(acuity, scores, dx)
-
-            # Pre-populate some actions as already actioned (realism)
-            for rec in agent_recs:
-                if random.random() > 0.65:
-                    actor = random.choice(STAFF)
-                    rec["actioned"] = {
-                        "decision": random.choice(["accepted","accepted","accepted","overridden"]),
-                        "actor": actor["name"],
-                        "actor_role": actor["role"],
-                        "timestamp": datetime.now().isoformat(),
-                        "note": "" if random.random() > 0.3 else random.choice([
-                            "Patient already on protocol",
-                            "Attending reviewed and concurs",
-                            "Family notified",
-                            "Order placed in system",
-                        ]),
-                    }
 
             event = {
                 "event_id":    str(uuid.uuid4())[:12],
@@ -369,7 +351,7 @@ def _get_live_stats() -> dict:
 class ActionRequest(BaseModel):
     event_id:   str
     agent_id:   str
-    decision:   str   # accepted | overridden | escalated
+    decision:   Literal["accepted", "overridden", "escalated"]
     actor:      str
     actor_role: str
     note:       str = ""
@@ -448,6 +430,23 @@ async def get_agents():
 async def get_actions(limit: int = 50):
     return {"actions": _action_log[:limit], "total": len(_action_log)}
 
+@router.get("/api/v1/audit")
+async def get_audit(limit: int = 100, agent_id: Optional[str] = None, decision: Optional[str] = None):
+    records = _action_log
+    if agent_id:
+        records = [r for r in records if r.get("agent_id") == agent_id]
+    if decision:
+        records = [r for r in records if r.get("decision") == decision]
+    return {
+        "records": records[:limit],
+        "total": len(records),
+        "summary": {
+            "accepted":  sum(1 for r in _action_log if r.get("decision") == "accepted"),
+            "overridden": sum(1 for r in _action_log if r.get("decision") == "overridden"),
+            "escalated":  sum(1 for r in _action_log if r.get("decision") == "escalated"),
+        },
+    }
+
 @router.get("/api/v1/health")
 async def health():
     pipeline_ready = _get_pipeline() is not None
@@ -523,7 +522,8 @@ async def run_pipeline(req: PipelineRunRequest):
 @router.get("/api/v1/stream")
 async def stream(request: Request):
     q: asyncio.Queue = asyncio.Queue()
-    _sse_clients.append(q)
+    qid = id(q)
+    _sse_clients[qid] = q
     log.info("sse.connected", total=len(_sse_clients))
 
     async def gen() -> AsyncGenerator[str, None]:
@@ -544,7 +544,7 @@ async def stream(request: Request):
         except Exception as e:
             log.warning("sse.error", error=str(e))
         finally:
-            if q in _sse_clients: _sse_clients.remove(q)
+            _sse_clients.pop(qid, None)
             log.info("sse.disconnected", total=len(_sse_clients))
 
     return StreamingResponse(gen(), media_type="text/event-stream",

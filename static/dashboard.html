@@ -98,6 +98,7 @@ body {
 }
 #conn-dot { width:6px; height:6px; border-radius:50%; background:#4b5563; }
 #conn-dot.live { background:#4ade80; box-shadow:0 0 6px #4ade80; animation:blink 2s infinite; }
+#conn-dot.connecting { background:#f59e0b; animation:blink 0.8s infinite; }
 @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.5} }
 
 /* ── NAV TABS ── */
@@ -987,6 +988,7 @@ body {
       </div>
       <div style="font-size:9px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Assign To / Acting As</div>
       <div id="action-staff-list"></div>
+      <div id="action-modal-error" style="display:none;color:var(--critical);font-size:10px;font-weight:700;padding:5px 8px;background:var(--critical-bg);border:1px solid #fecaca;border-radius:4px;margin-top:6px">Please select who is taking this action.</div>
       <textarea id="action-note-input" rows="2" placeholder="Optional note (override reason, escalation details…)"></textarea>
       <div style="display:flex;justify-content:flex-end;gap:6px;margin-top:10px">
         <button class="action-btn secondary" onclick="closeActionModal()">Cancel</button>
@@ -1058,6 +1060,8 @@ function connectSSE() {
   const es = new EventSource('/api/v1/stream');
   const dot = document.getElementById('conn-dot');
   const lbl = document.getElementById('conn-label');
+  dot.className = 'connecting';
+  lbl.textContent = 'CONNECTING…';
   es.onopen = () => { dot.className='live'; lbl.textContent='LIVE'; };
   es.onerror = () => {
     dot.className=''; lbl.textContent='RECONNECTING';
@@ -1280,6 +1284,10 @@ function renderAnalytics() {
 
 function initCharts() {
   if (!census || !opsMetrics) return;
+  // Destroy any existing instances before creating new ones (prevent memory leak)
+  ['discharge','acuity','capacity'].forEach(k => {
+    if (charts[k]) { charts[k].destroy(); charts[k] = null; }
+  });
   const s = census.summary;
 
   // Discharge
@@ -1341,7 +1349,8 @@ function collectAlerts() {
       });
     });
   });
-  alerts.sort((a,b) => a.severity==='CRITICAL'?-1:1);
+  const _sevOrder = {CRITICAL:0, HIGH:1, INFO:2, LOW:3};
+  alerts.sort((a,b) => (_sevOrder[a.severity]??2) - (_sevOrder[b.severity]??2) || new Date(b.time) - new Date(a.time));
   alerts = alerts.slice(0,25);
   refreshAlerts();
 }
@@ -1358,8 +1367,18 @@ function pushAlert(ev) {
   refreshAlerts();
 }
 
+let _alertRefreshTimer = null;
+let _alertLastHash = '';
 function refreshAlerts() {
+  clearTimeout(_alertRefreshTimer);
+  _alertRefreshTimer = setTimeout(_doRefreshAlerts, 120);
+}
+function _doRefreshAlerts() {
+  const hash = alerts.slice(0,30).map(a=>(a.severity||'')+(a.patient||'')+(a.time||'')).join('|');
+  if (hash === _alertLastHash) return;
+  _alertLastHash = hash;
   const body = document.getElementById('alerts-body');
+  if (!body) return;
   const cnt = alerts.filter(a=>a.severity==='CRITICAL').length;
   document.getElementById('alert-count').textContent = cnt;
   const icons = { SEPSIS:'SEP', DETERIORATION:'DET', CRITICAL_LAB:'LAB', DISCHARGE:'DCH', ADMIT:'ADM', HIGH:'ALT', INFO:'INF' };
@@ -1367,7 +1386,7 @@ function refreshAlerts() {
     <div class="alert-item ${a.severity}">
       <div class="alert-icon" style="font-size:8px;font-weight:800;width:28px;text-align:center;flex-shrink:0">${icons[a.type]||icons[a.severity]||'ALT'}</div>
       <div class="alert-body">
-        <div class="alert-title ${a.severity}">${a.type}</div>
+        <div class="alert-title ${a.severity}">${a.type||''}</div>
         <div class="alert-detail">${a.patient||''} · ${a.bed||''}</div>
         <div class="alert-detail">${a.message||''}</div>
       </div>
@@ -1381,13 +1400,20 @@ function refreshAlerts() {
 // ══════════════════════════════════════════════════════════
 function buildAgentCard(rec, eventId, canAction=true) {
   const actioned = rec.actioned;
-  const pendBtns = canAction && !actioned ? `
-    <div class="afc-actions">
-      ${(rec.actions||[]).map(a=>`<button class="action-btn ${a.type}" onclick="openActionModal(${JSON.stringify({eventId, rec}).replace(/</g,'&lt;')})">${a.label}</button>`).join('')}
-      <button class="action-btn override" onclick="openActionModal(${JSON.stringify({eventId, rec, forceDecision:'overridden'}).replace(/</g,'&lt;')})">↩ Override</button>
-      <button class="action-btn escalate" onclick="openActionModal(${JSON.stringify({eventId, rec, forceDecision:'escalated'}).replace(/</g,'&lt;')})">↑ Escalate</button>
-    </div>
-  ` : '';
+  let pendBtns = '';
+  if (canAction && !actioned) {
+    const baseKey = 'afc_' + (eventId||'x') + '_' + (rec.agent||'a') + '_' + Math.random().toString(36).slice(2,6);
+    const keyO = baseKey + '_o', keyE = baseKey + '_e';
+    storeRec(baseKey, { eventId, rec });
+    storeRec(keyO, { eventId, rec, forceDecision: 'overridden' });
+    storeRec(keyE, { eventId, rec, forceDecision: 'escalated' });
+    const actionBtns = (rec.actions||[]).map(a => {
+      const ka = baseKey + '_' + a.label.replace(/\W+/g,'_');
+      storeRec(ka, { eventId, rec });
+      return `<button class="action-btn ${a.type}" onclick="openActionModal(getRec('${ka}'))">${a.label}</button>`;
+    }).join('');
+    pendBtns = `<div class="afc-actions">${actionBtns}<button class="action-btn override" onclick="openActionModal(getRec('${keyO}'))">↩ Override</button><button class="action-btn escalate" onclick="openActionModal(getRec('${keyE}'))">↑ Escalate</button></div>`;
+  }
 
   const actionedBanner = actioned ? `
     <div class="afc-actioned ${actioned.decision}">
@@ -1708,12 +1734,13 @@ async function openActionModal(ctx) {
   // Staff list
   const staffRes = await fetch('/api/v1/agents');
   const staffData = await staffRes.json();
-  document.getElementById('action-staff-list').innerHTML = (staffData.staff||[]).map(s=>`
-    <div class="staff-option" onclick="selectStaff(this,'${s.name}','${s.role}')">
+  document.getElementById('action-staff-list').innerHTML = (staffData.staff||[]).map((s,i)=>`
+    <div class="staff-option" data-staff-idx="${i}" onclick="selectStaffByIdx(this,${i})">
       <div class="staff-name">${s.name}</div>
       <div class="staff-role">${s.role}</div>
     </div>
   `).join('');
+  window._staffList = staffData.staff || [];
 
   document.getElementById('action-note-input').value = '';
   document.getElementById('action-modal-overlay').classList.add('open');
@@ -1731,6 +1758,16 @@ function setDecision(d) {
 }
 
 let _selectedStaff = null;
+function selectStaffByIdx(el, idx) {
+  document.querySelectorAll('.staff-option').forEach(e=>e.classList.remove('selected'));
+  el.classList.add('selected');
+  const s = (window._staffList || [])[idx];
+  if (s) {
+    _selectedStaff = {name: s.name, role: s.role};
+    const err = document.getElementById('action-modal-error');
+    if (err) err.style.display = 'none';
+  }
+}
 function selectStaff(el, name, role) {
   document.querySelectorAll('.staff-option').forEach(e=>e.classList.remove('selected'));
   el.classList.add('selected');
@@ -1738,7 +1775,11 @@ function selectStaff(el, name, role) {
 }
 
 async function submitAction() {
-  if (!_selectedStaff) { alert('Please select who is taking this action.'); return; }
+  if (!_selectedStaff) {
+    const err = document.getElementById('action-modal-error');
+    if (err) { err.style.display='block'; setTimeout(()=>{ err.style.display='none'; }, 3000); }
+    return;
+  }
   const ctx = _actionContext;
   const note = document.getElementById('action-note-input').value;
   try {
@@ -1763,7 +1804,7 @@ async function submitAction() {
           decision:_actionDecision,
           actor:_selectedStaff.name,
           actor_role:_selectedStaff.role,
-          timestamp:new Date().isoformat?.()??new Date().toISOString(),
+          timestamp: new Date().toISOString(),
           note,
         };
       }
@@ -2444,16 +2485,17 @@ function renderRiskWatch() {
   const top = patients.slice(0, 6);
   const container = document.getElementById('risk-watch-container');
   if (!container) return;
+  top.forEach((p,i) => storeRec('rw_'+i, p));
   container.innerHTML = `
     <div style="font-size:9px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Patient Risk Watch</div>
-    ${top.map(p => `
-      <div style="display:flex;align-items:center;gap:6px;padding:5px 6px;border:1px solid var(--border);border-radius:5px;background:white;margin-bottom:3px;cursor:pointer" onclick='openPatientModal(${JSON.stringify(p).replace(/</g,"&lt;")})'>
-        <div style="font-size:8px;color:var(--text-dim);width:55px;flex-shrink:0">${p.bed_id}</div>
+    ${top.map((p,i) => `
+      <div style="display:flex;align-items:center;gap:6px;padding:5px 6px;border:1px solid var(--border);border-radius:5px;background:white;margin-bottom:3px;cursor:pointer" onclick="openPatientModal(getRec('rw_${i}'))">
+        <div style="font-size:8px;color:var(--text-dim);width:55px;flex-shrink:0">${p.bed_id||''}</div>
         <div style="flex:1;min-width:0">
-          <div style="font-size:9px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.name||p.mrn}</div>
-          <div style="font-size:8px;color:var(--text-dim)">${p.age}yo · ${p.diagnosis.substring(0,18)}</div>
+          <div style="font-size:9px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.name||p.mrn||'—'}</div>
+          <div style="font-size:8px;color:var(--text-dim)">${p.age||'?'}yo · ${(p.diagnosis||'').substring(0,18)}</div>
         </div>
-        <span class="acuity-pill ${p.acuity}" style="font-size:7px;padding:1px 5px;flex-shrink:0">${p.acuity.substring(0,4)}</span>
+        <span class="acuity-pill ${p.acuity||''}" style="font-size:7px;padding:1px 5px;flex-shrink:0">${(p.acuity||'').substring(0,4)}</span>
         <div style="font-size:10px;font-weight:800;color:${(p.scores?.readmission_30d||0)>0.6?'var(--critical)':'var(--high)'};width:28px;text-align:right;flex-shrink:0">${Math.round((p.scores?.readmission_30d||0)*100)}%</div>
       </div>
     `).join('')}
@@ -2472,15 +2514,17 @@ function renderSepsisWatch() {
   patients.sort((a,b) => (b.scores?.sepsis_risk||0) - (a.scores?.sepsis_risk||0));
   const container = document.getElementById('sepsis-watch-container');
   if (!container) return;
+  const swTop = patients.slice(0,4);
+  swTop.forEach((p,i) => storeRec('sw_'+i, p));
   container.innerHTML = `
     <div style="font-size:9px;font-weight:700;color:var(--critical);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;margin-top:8px">
       Sepsis Watch (${patients.length} patients)
     </div>
-    ${patients.slice(0,4).map(p=>`
-      <div style="display:flex;align-items:center;gap:6px;padding:4px 6px;border:1px solid #fecaca;border-radius:4px;background:var(--critical-bg);margin-bottom:3px;cursor:pointer" onclick='openPatientModal(${JSON.stringify(p).replace(/</g,"&lt;")})'>
+    ${swTop.map((p,i)=>`
+      <div style="display:flex;align-items:center;gap:6px;padding:4px 6px;border:1px solid #fecaca;border-radius:4px;background:var(--critical-bg);margin-bottom:3px;cursor:pointer" onclick="openPatientModal(getRec('sw_${i}'))">
         <div style="width:6px;height:6px;border-radius:50%;background:var(--critical);animation:blink 1.5s infinite;flex-shrink:0"></div>
-        <div style="font-size:9px;font-weight:600;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.name||p.mrn}</div>
-        <div style="font-size:8px;color:var(--text-dim)">${p.bed_id}</div>
+        <div style="font-size:9px;font-weight:600;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.name||p.mrn||'—'}</div>
+        <div style="font-size:8px;color:var(--text-dim)">${p.bed_id||''}</div>
         <div style="font-size:10px;font-weight:800;color:var(--critical)">${Math.round((p.scores?.sepsis_risk||0)*100)}%</div>
       </div>
     `).join('')}

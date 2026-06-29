@@ -144,7 +144,7 @@ class RiskScoringEngine:
 
     def _score_heuristic(self, f: PatientFeatures, pid: str) -> RiskScores:
         """Deterministic heuristic scoring when no models are available."""
-        readmission = min(0.95, (
+        readmission = min(1.0, (
             (min(f.age, 90) / 90) * 0.25
             + (min(f.prior_admissions_12m, 5) / 5) * 0.30
             + (min(f.charlson_index, 8) / 8) * 0.25
@@ -152,16 +152,16 @@ class RiskScoringEngine:
             + f.language_barrier * 0.05
             + (f.patient_class_encoded == 2) * 0.05
         ))
-        deterioration = min(0.95, (
+        deterioration = min(1.0, (
             (f.patient_class_encoded == 2) * 0.35
             + (min(f.active_problem_count, 10) / 10) * 0.25
             + (min(f.prior_ed_visits_12m, 5) / 5) * 0.20
             + (min(f.medication_count, 15) / 15) * 0.15
             + (f.charlson_index > 3) * 0.05
         ))
-        sepsis = min(0.90, deterioration * 0.6 + readmission * 0.2 + f.language_barrier * 0.05)
-        discharge = min(0.95, max(0, 0.8 - readmission * 0.5 - deterioration * 0.4))
-        discharge_tmrw = min(0.95, max(0, 0.85 - readmission * 0.4 - deterioration * 0.3))
+        sepsis = min(1.0, deterioration * 0.6 + readmission * 0.2 + f.language_barrier * 0.05)
+        discharge = min(1.0, max(0, 0.8 - readmission * 0.5 - deterioration * 0.4))
+        discharge_tmrw = min(1.0, max(0, 0.85 - readmission * 0.4 - deterioration * 0.3))
         los = max(1, int((readmission * 14) + (deterioration * 7) + 1))
         max_risk = max(readmission, deterioration)
         factors = [

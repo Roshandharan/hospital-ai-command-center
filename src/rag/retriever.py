@@ -52,6 +52,8 @@ class ClinicalRAG:
         self._collection = None
         self._encoder = None
         self._settings = get_settings()
+        self._query_cache: dict[str, list[float]] = {}  # query → embedding
+        self._CACHE_MAX = 256
 
     def initialize(self) -> None:
         try:
@@ -86,7 +88,11 @@ class ClinicalRAG:
         if not self._available:
             return RetrievedContext([], [], [], query)
         try:
-            emb = self._encoder.encode(query).tolist()
+            if query not in self._query_cache:
+                if len(self._query_cache) >= self._CACHE_MAX:
+                    self._query_cache.pop(next(iter(self._query_cache)))
+                self._query_cache[query] = self._encoder.encode(query).tolist()
+            emb = self._query_cache[query]
             count = self._collection.count()
             results = self._collection.query(
                 query_embeddings=[emb],

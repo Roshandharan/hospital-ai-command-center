@@ -281,11 +281,18 @@ async def rag_node(state: PipelineState, rag: Any) -> PipelineState:
         query_parts.append("geriatric elderly readmission")
     query = ". ".join(query_parts)
 
-    ctx = rag.retrieve(query, n=4)
-    state["rag_context"] = ctx.as_prompt_text()
-    state["rag_sources"] = ctx.sources
+    try:
+        ctx = rag.retrieve(query, n=4)
+        if ctx is None:
+            raise ValueError("retrieve() returned None")
+        state["rag_context"] = ctx.as_prompt_text()
+        state["rag_sources"] = ctx.sources
+        log.info("agent.rag.done", sources=ctx.sources)
+    except Exception as e:
+        log.warning("agent.rag.failed", error=str(e))
+        state["rag_context"] = "No relevant clinical guidelines retrieved."
+        state["rag_sources"] = []
     state["audit_actions"] = state.get("audit_actions", []) + ["rag_retrieved"]
-    log.info("agent.rag.done", sources=ctx.sources)
     return state
 
 
@@ -339,9 +346,20 @@ Return only valid JSON, no markdown."""
             max_tokens=512,
             messages=[{"role": "user", "content": prompt}],
         )
-        import json
+        import json, re
         text = response.content[0].text.strip()
+        # Strip markdown code fences if Claude wraps in ```json ... ```
+        text = re.sub(r'^```(?:json)?\s*', '', text)
+        text = re.sub(r'\s*```$', '', text)
         plan = json.loads(text)
+        # Validate required structure
+        required = {"priority_actions", "care_pathway", "follow_up_timeframe",
+                    "escalation_threshold", "guidelines_applied"}
+        missing = required - set(plan.keys())
+        if missing:
+            raise ValueError(f"Missing required fields in LLM response: {missing}")
+        if not isinstance(plan.get("priority_actions"), list):
+            raise ValueError("priority_actions must be a list")
         state["intervention_plan"] = plan
         log.info("agent.intervention.done", actions=len(plan.get("priority_actions", [])))
     except Exception as e:

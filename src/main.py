@@ -28,9 +28,8 @@ async def lifespan(app: FastAPI):
     from src.api.command_center import load_data, live_feed_loop
     log.info("app.startup", version="3.0.0")
     load_data()
-    # Warm up pipeline in thread pool so it doesn't block startup
-    loop = asyncio.get_event_loop()
-    loop.run_in_executor(None, _init_pipeline_background)
+    # Warm up pipeline in background thread without blocking the event loop
+    asyncio.create_task(asyncio.to_thread(_init_pipeline_background))
     task = asyncio.create_task(live_feed_loop())
     log.info("live_feed.scheduled")
     yield
@@ -49,11 +48,20 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+from src.config import get_settings as _get_settings
+_cfg = _get_settings()
+_cors_origins = (
+    ["*"] if _cfg.environment != "production"
+    else [
+        "https://hospital-ai-command-center-production.up.railway.app",
+        "http://localhost:8000",
+    ]
+)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=_cors_origins,
+    allow_methods=["GET", "POST"],
+    allow_headers=["Content-Type", "Accept"],
 )
 
 from src.api.command_center import router
