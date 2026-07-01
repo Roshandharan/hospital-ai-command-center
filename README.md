@@ -16,7 +16,8 @@ Clinical AI platforms are usually bolted onto EHRs as reporting tools — they s
 
 The system handles the complete workflow from HL7 ADT message ingestion → LangGraph pipeline → risk scoring → clinical guideline retrieval → LLM synthesis → SSE push → interactive dashboard → accountability logging.
 
-https://github.com/user-attachments/assets/ff3826e7-1216-4d55-9856-0faff9e6a950
+<video src="https://github.com/user-attachments/assets/ff3826e7-1216-4d55-9856-0faff9e6a950" controls width="100%"></video>
+
 ---
 
 ## Table of Contents
